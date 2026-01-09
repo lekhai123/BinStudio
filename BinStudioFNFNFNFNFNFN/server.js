@@ -11,6 +11,7 @@ const adminSharedRoutes = require('./route/adminIndexRoute');
 const ghnRouter = require('./route/ghnRoute');
 const flash = require('connect-flash');
 const orderController = require('./Controller/userOrderController');
+const MongoStore = require('connect-mongo'); // THÊM DÒNG NÀY VÀO ĐÂY
 
 
 const http = require('http');
