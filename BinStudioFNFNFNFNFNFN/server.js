@@ -58,7 +58,7 @@ app.use(session({
         httpOnly: true,
         secure: true // Bật dòng này nếu đã có HTTPS (trên Render thì nên bật, localhost thì tắt)
     }
-
+}));
 app.use(flash());
 
 app.use(systemLog);
