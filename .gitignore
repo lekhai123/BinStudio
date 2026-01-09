@@ -1,0 +1,14 @@
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Visual Studio (Cái gây lỗi)
+.vs/
+.vscode/
+*.user
+*.suo
+*.sln.docstates
+
+# Môi trường
+.env

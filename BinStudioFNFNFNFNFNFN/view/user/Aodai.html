@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BinStudio - Bộ Sưu Tập</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        /* --- CẤU HÌNH CHUNG --- */
+        :root {
+            --primary: #d1b06b;
+            --primary-hover: #c5a059;
+            --dark: #111111;
+            --light: #f4f4f4;
+            --text-gray: #666;
+            --white: #ffffff;
+            --font-heading: 'Playfair Display', serif;
+            --font-body: 'Montserrat', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background-color: var(--white);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+            transition: 0.3s;
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        /* --- HEADER & NAVIGATION --- */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 5%;
+            background: var(--white);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .logo-text {
+            font-family: var(--font-heading);
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--dark);
+            letter-spacing: 1px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+            .nav-links a, .nav-links span {
+                font-size: 14px;
+                font-weight: 500;
+                color: var(--dark);
+                position: relative;
+            }
+
+                .nav-links a:hover {
+                    color: var(--primary);
+                }
+
+        /* --- CHỈNH SỬA NÚT GIỎ HÀNG --- */
+        /* --- NÚT GIỎ HÀNG LUXURY --- */
+        .cart-btn {
+            position: relative; /* Làm mốc tọa độ cho số lượng */
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--dark); /* Màu đen của icon */
+            font-size: 24px; /* Kích thước icon to rõ */
+            text-decoration: none;
+            transition: transform 0.3s ease, color 0.3s ease;
+            margin-left: 15px; /* Cách xa các nút bên cạnh một chút */
+        }
+
+            /* Hiệu ứng khi rê chuột: To lên và đổi màu vàng */
+            .cart-btn:hover {
+                transform: scale(1.1);
+                color: var(--primary);
+            }
+
+        .cart-badge {
+            position: absolute; /* Để bay tự do đè lên icon */
+            top: -5px; /* Đẩy lên trên mép icon */
+            right: 1px; /* Đẩy sang phải mép icon */
+
+            background-color: var(--primary); /* Nền màu Vàng kim */
+            color: #ffffff; /* Số màu trắng */
+
+            font-size: 10px; /* Cỡ chữ số bé xinh */
+            font-weight: 700; /* Chữ đậm cho dễ đọc */
+            font-family: Arial, sans-serif; /* Font số đơn giản dễ nhìn */
+
+            height: 18px; /* Chiều cao tròn */
+            width: 18px; /* Chiều rộng tròn */
+            border-radius: 50%; /* Bo tròn tuyệt đối */
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* 🔥 MẸO ĐỂ ĐẸP HƠN: Thêm viền trắng để tách biệt với icon */
+            border: 2px solid #ffffff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Đổ bóng nhẹ */
+        }
+
+        /* --- CATEGORY BAR --- */
+        .categories {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            padding: 15px 0;
+            background: var(--dark);
+            border-bottom: 1px solid #333;
+        }
+
+            .categories a {
+                color: #ccc;
+                font-size: 13px;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                font-weight: 500;
+            }
+
+                .categories a:hover {
+                    color: var(--primary);
+                }
+
+        /* --- PRODUCT GRID --- */
+        .container {
+            padding: 60px 5%;
+            min-height: 60vh;
+        }
+
+        .section-title {
+            text-align: center;
+            font-family: var(--font-heading);
+            font-size: 36px;
+            margin-bottom: 40px;
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+            .section-title::after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 60px;
+                height: 3px;
+                background: var(--primary);
+            }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 30px;
+        }
+
+        /* --- PRODUCT CARD (LUXURY EFFECTS) --- */
+        .product-card {
+            background: var(--white);
+            transition: all 0.4s ease;
+            position: relative;
+            border: 1px solid transparent;
+        }
+
+            .product-card:hover {
+                transform: translateY(-10px);
+                box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+                border-color: #eee;
+            }
+
+        .product-img-wrapper {
+            width: 100%;
+            height: 350px;
+            overflow: hidden;
+            position: relative;
+            background: #f0f0f0;
+        }
+
+            .product-img-wrapper img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            }
+
+        .product-card:hover .product-img-wrapper img {
+            transform: scale(1.1);
+        }
+
+        .product-info {
+            padding: 25px 15px;
+            text-align: center;
+        }
+
+            .product-info h3 {
+                font-family: var(--font-body);
+                font-size: 16px;
+                font-weight: 600;
+                color: var(--dark);
+                margin-bottom: 8px;
+                text-transform: uppercase;
+                transition: color 0.3s ease;
+                display: inline-block;
+                position: relative;
+            }
+
+                .product-info h3::after {
+                    content: '';
+                    position: absolute;
+                    width: 0;
+                    height: 1px;
+                    bottom: -2px;
+                    left: 0;
+                    background-color: var(--primary);
+                    transition: width 0.3s ease;
+                }
+
+        .product-card:hover .product-info h3 {
+            color: var(--primary);
+        }
+
+            .product-card:hover .product-info h3::after {
+                width: 100%;
+            }
+
+        .product-price {
+            color: var(--text-gray);
+            font-weight: 500;
+            font-size: 16px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .product-card:hover .product-price {
+            color: var(--primary);
+            font-weight: 700;
+            transform: scale(1.1);
+        }
+
+        .btn-xct {
+            display: inline-block;
+            padding: 12px 30px;
+            border: 1px solid var(--dark);
+            color: var(--dark);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            transition: color 0.4s ease;
+            background: transparent;
+        }
+
+            .btn-xct::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 0;
+                height: 100%;
+                background: var(--dark);
+                z-index: -1;
+                transition: width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            }
+
+        .product-card:hover .btn-xct {
+            border-color: var(--dark);
+        }
+
+        .btn-xct:hover {
+            color: var(--white);
+            border-color: var(--dark);
+        }
+
+            .btn-xct:hover::before {
+                width: 100%;
+            }
+
+        /* --- FOOTER --- */
+        footer {
+            background: #0a0a0a;
+            color: #ddd;
+            padding: 60px 5% 20px;
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        .footer-logo {
+            font-family: var(--font-heading);
+            font-size: 24px;
+            color: var(--white);
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            display: inline-block;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+        }
+
+        .footer-info {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .copyright {
+            font-size: 12px;
+            color: #555;
+            border-top: 1px solid #222;
+            padding-top: 20px;
+        }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 768px) {
+            .nav-links {
+                gap: 15px;
+            }
+
+                .nav-links a, .nav-links span {
+                    font-size: 12px;
+                }
+
+            .categories {
+                overflow-x: auto;
+                justify-content: start;
+                padding: 15px;
+            }
+
+                .categories a {
+                    white-space: nowrap;
+                }
+        }
+        /* --- MOBILE RESPONSIVE (ĐỒNG BỘ GIAO DIỆN) --- */
+        @media (max-width: 768px) {
+
+            /* 1. Header & Nav (Code bạn yêu cầu để đồng bộ) */
+            nav {
+                padding: 15px 4%;
+            }
+
+            .logo-text {
+                font-size: 20px;
+            }
+
+            .nav-links {
+                gap: 15px;
+            }
+
+                .nav-links span {
+                    font-size:12px;
+                }
+
+            .cart-btn {
+                font-size: 22px;
+                margin-left: 5px;
+            }
+
+            /* 2. Menu danh mục (Lướt ngang) */
+            .categories {
+                justify-content: flex-start;
+                padding: 10px 4%;
+                gap: 15px;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                white-space: nowrap;
+            }
+
+                .categories::-webkit-scrollbar {
+                    display: none;
+                }
+
+                .categories a {
+                    background: rgba(255,255,255,0.1);
+                    padding: 6px 12px;
+                    border-radius: 20px;
+                    font-size: 12px;
+                    border: 1px solid #444;
+                }
+
+            /* 3. Tối ưu Lưới Sản Phẩm (Product Grid) cho trang Bộ sưu tập */
+            .container {
+                padding: 30px 2%; /* Giảm lề màn hình */
+            }
+
+            .section-title {
+                font-size: 24px; /* Tên danh mục nhỏ lại */
+                margin-bottom: 30px;
+            }
+
+            .product-grid {
+                /* Ép hiển thị 2 cột (thay vì 1 cột auto) */
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px; /* Khoảng cách giữa 2 ảnh nhỏ lại */
+            }
+
+            /* Tinh chỉnh thẻ sản phẩm trên mobile */
+            .product-card {
+                box-shadow: 0 5px 15px rgba(0,0,0,0.05); /* Bóng nhẹ hơn */
+            }
+
+            .product-img-wrapper {
+                height: 220px; /* Giảm chiều cao ảnh để cân đối với 2 cột */
+            }
+
+            .product-info {
+                padding: 15px 10px;
+            }
+
+                .product-info h3 {
+                    font-size: 13px; /* Tên sản phẩm nhỏ lại */
+                    height: 36px; /* Giới hạn chiều cao tên (khoảng 2 dòng) */
+                    overflow: hidden;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                }
+
+            .product-price {
+                font-size: 14px;
+                margin-bottom: 10px;
+            }
+
+            /* Nút "CHI TIẾT" dễ bấm hơn */
+            .btn-xct {
+                padding: 8px 0; /* Giảm padding trên dưới */
+                width: 100%; /* Full chiều ngang thẻ để dễ bấm ngón cái */
+                font-size: 10px;
+            }
+
+            .badge-hot {
+                top: 10px;
+                left: 10px;
+                padding: 3px 8px;
+                font-size: 10px;
+            }
+
+            /* 4. Footer */
+            footer {
+                padding: 40px 5% 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">
+            <a href="/" class="logo-link">
+                <span class="logo-text">BinStudio</span>
+            </a>
+        </div>
+        <div class="nav-links">
+            <% if (user) { %>
+            <span>Xin chào, <b><%= user.fullName ? user.fullName : 'User' %></b></span>
+            <a href="/logout" title="Đăng xuất"><i class="fas fa-sign-out-alt"></i></a>
+            <% } else { %>
+            <a href="/login">Đăng nhập</a>
+            <a href="/register" style="border: 1px solid var(--dark); padding: 5px 15px;">Đăng ký</a>
+            <% } %>
+            <a href="/order" title="Lịch sử đơn"><i class="fas fa-box"></i></a>
+            <a href="/cart" class="cart-btn">
+                <i class="fas fa-shopping-bag"></i>
+                <span class="cart-badge"><%= cartCount %></span>
+            </a>
+        </div>
+    </nav>
+
+    <div class="categories">
+        <a href="/Vest">Vest Suit</a>
+        <a href="/Quan">Trousers</a>
+        <a href="/Aosomi">Shirts</a>
+        <a href="/Aodai">Áo Dài</a>
+        <a href="/Phukien">Accessories</a>
+    </div>
+
+    <div class="container">
+
+        <h2 class="section-title">DANH SÁCH SẢN PHẨM</h2>
+
+        <div class="product-grid">
+            <% if (products.length > 0) { %>
+            <% products.forEach(function(product) { %>
+            <div class="product-card">
+                <% if(product.isHot) { %>
+                <div class="badge-hot" style="position: absolute; top: 15px; left: 15px; background: var(--primary); color: white; padding: 5px 12px; font-size: 11px; font-weight: 700; z-index: 2; letter-spacing: 1px;">HOT</div>
+                <% } %>
+
+                <div class="product-img-wrapper">
+                    <a href="/product/<%= product._id %>">
+                        <img src="<%= Array.isArray(product.image) ? product.image[0] : product.image %>" alt="<%= product.name %>">
+                    </a>
+                </div>
+
+                <div class="product-info">
+                    <a href="/product/<%= product._id %>">
+                        <h3><%= product.name %></h3>
+                    </a>
+                    <p class="product-price"><%= product.price.toLocaleString('vi-VN') %>₫</p>
+                    <a href="/product/<%= product._id %>" class="btn-xct">CHI TIẾT</a>
+                </div>
+            </div>
+            <% }); %>
+            <% } else { %>
+            <div style="grid-column: 1 / -1; text-align: center; padding: 50px;">
+                <p>Hiện chưa có sản phẩm nào trong danh mục này.</p>
+                <a href="/" style="color: var(--primary); font-weight: bold;">Quay về trang chủ</a>
+            </div>
+            <% } %>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-logo">BINSTUDIO</div>
+        <div class="footer-info">
+            <span><i class="fas fa-map-marker-alt" style="color: var(--primary); width: 20px;"></i> 202/7 Huỳnh Văn Bánh, P.11, Q.Phú Nhuận, TP.HCM</span>
+            <span><i class="fas fa-phone" style="color: var(--primary); width: 20px;"></i> 037 241 2155</span>
+            <span>
+                <i class="fas fa-envelope" style="color: var(--primary); width: 20px;"></i>
+                manchic2612@gmail.com
+            </span>
+        </div>
+
+        <div style="margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 15px;">
+            <a href="https://www.facebook.com/manchic2612" target="_blank" style="font-size: 24px; color: #ddd;">
+                <i class="fab fa-facebook"></i>
+            </a>
+            <a href="https://zalo.me/0372412155" target="_blank" style="display: flex; align-items: center;">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg" alt="Zalo" style="width: 24px; height: 24px; filter: grayscale(100%) brightness(200%); transition: 0.3s;">
+            </a>
+        </div>
+
+        <div class="copyright">
+            &copy; 2026 BinStudio. Thiết kế đẳng cấp quý ông.
+        </div>
+    </footer>
+
+    <style>
+        /* CSS phụ cho icon Footer */
+        a:hover img[alt="Zalo"] {
+            filter: none !important;
+            transform: scale(1.1);
+        }
+
+        a:hover .fa-facebook {
+            color: #1877F2 !important;
+        }
+    </style>
+
+</body>
+</html>

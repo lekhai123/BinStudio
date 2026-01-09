@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BinStudio - Đổi mật khẩu</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        /* --- CẤU HÌNH MÀU SẮC CHUNG --- */
+        :root {
+            --primary: #d1b06b;
+            --primary-hover: #c5a059;
+            --dark: #111111;
+            --light: #f4f4f4;
+            --white: #ffffff;
+            --font-heading: 'Playfair Display', serif;
+            --font-body: 'Montserrat', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+            transition: 0.3s;
+        }
+
+        /* --- NAVIGATION --- */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 5%;
+            background: var(--white);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .logo-text {
+            font-family: var(--font-heading);
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--dark);
+            letter-spacing: 1px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            margin-right: 15px;
+        }
+
+            .nav-links a {
+                font-size: 14px;
+                font-weight: 500;
+                color: var(--dark);
+                white-space: nowrap;
+            }
+
+                .nav-links a:hover {
+                    color: var(--primary);
+                }
+
+        /* Nút giỏ hàng */
+        .cart-btn {
+            position: relative;
+            font-size: 24px;
+            color: var(--dark);
+            margin-left: 15px;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -1px;
+            right: -17px;
+            background: var(--primary);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 2px solid white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* --- LOGIN BOX CENTER --- */
+        .page-center {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh;
+            padding: 40px 20px;
+        }
+
+        .login-box {
+            background: var(--white);
+            width: 100%;
+            max-width: 450px;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+
+        .section-title {
+            font-family: var(--font-heading);
+            font-size: 32px;
+            margin-bottom: 30px;
+            color: var(--dark);
+        }
+
+        /* FORM ELEMENTS */
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+            .form-group label {
+                display: block;
+                font-weight: 600;
+                font-size: 14px;
+                margin-bottom: 8px;
+                color: #333;
+            }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: 0.3s;
+            font-family: var(--font-body);
+        }
+
+            .form-control:focus {
+                border-color: var(--primary);
+                outline: none;
+            }
+
+        /* INPUT GROUP OTP */
+        .input-group {
+            position: relative;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-otp {
+            background: var(--dark);
+            color: white;
+            border: none;
+            padding: 0 20px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: 0.3s;
+        }
+
+            .btn-otp:hover {
+                background: var(--primary);
+            }
+
+            .btn-otp:disabled {
+                background: #ccc;
+                cursor: not-allowed;
+            }
+
+        /* SUBMIT BUTTON */
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            margin-top: 10px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            font-size: 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(209, 176, 107, 0.4);
+        }
+
+            .btn-submit:hover {
+                background: var(--primary-hover);
+                transform: translateY(-2px);
+            }
+
+        /* ALERTS */
+        .alert {
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .alert-error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+
+        .alert-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+
+        /* FOOTER */
+        footer {
+            background: #0a0a0a;
+            color: #ddd;
+            padding: 60px 5% 20px;
+            text-align: center;
+            margin-top: auto;
+        }
+
+        .footer-logo {
+            font-family: var(--font-heading);
+            font-size: 24px;
+            color: white;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--primary);
+            display: inline-block;
+            padding-bottom: 10px;
+        }
+
+        .footer-info {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .copyright {
+            font-size: 12px;
+            color: #555;
+            border-top: 1px solid #222;
+            padding-top: 20px;
+        }
+        /* --- MOBILE RESPONSIVE (TỐI ƯU TRANG FORM) --- */
+        @media (max-width: 768px) {
+
+            /* 1. ĐỒNG BỘ HEADER (Giống các trang khác) */
+            nav {
+                padding: 15px 4%;
+            }
+
+            .logo-text {
+                font-size: 20px;
+            }
+
+            .nav-links {
+                gap: 15px;
+                margin-right: 0;
+            }
+
+                .nav-links span {
+                    font-size: 12px;
+                }
+
+            .cart-btn {
+                font-size: 22px;
+                margin-left: 5px;
+            }
+
+            /* 2. TỐI ƯU FORM ĐỔI MẬT KHẨU */
+            .page-center {
+                padding: 20px 4%; /* Giảm lề ngoài */
+                min-height: 70vh; /* Giảm chiều cao tối thiểu */
+                align-items: flex-start; /* Đẩy form lên trên một chút thay vì giữa hẳn */
+                padding-top: 40px;
+            }
+
+            .login-box {
+                padding: 30px 20px; /* Giảm khoảng cách bên trong hộp */
+                box-shadow: 0 5px 15px rgba(0,0,0,0.05); /* Bóng mờ nhẹ hơn */
+            }
+
+            .section-title {
+                font-size: 24px; /* Tiêu đề nhỏ lại */
+                margin-bottom: 20px;
+            }
+
+            /* Tối ưu ô nhập liệu và nút OTP */
+            .form-group {
+                margin-bottom: 15px;
+            }
+
+            .form-control {
+                font-size: 16px; /* Cỡ chữ 16px để tránh iPhone tự zoom */
+                padding: 10px 12px;
+            }
+
+            .btn-otp {
+                padding: 0 15px; /* Thu gọn nút OTP */
+                font-size: 12px;
+            }
+
+            .btn-submit {
+                padding: 12px;
+                font-size: 14px;
+            }
+
+            /* 3. FOOTER */
+            footer {
+                padding: 40px 5% 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">
+            <a href="/" class="logo-link"><span class="logo-text">BinStudio</span></a>
+        </div>
+        <div class="nav-links">
+            <% if (user) { %>
+            <span>Xin chào, <b><%= user.fullName ? user.fullName : 'User' %></b></span>
+            <a href="/logout" title="Đăng xuất"><i class="fas fa-sign-out-alt"></i></a>
+            <% } else { %>
+            <a href="/login">Đăng nhập</a>
+            <a href="/register" style="border: 1px solid var(--dark); padding: 5px 15px;">Đăng ký</a>
+            <% } %>
+            <a href="/order" title="Lịch sử đơn"><i class="fas fa-box"></i></a>
+            <a href="/cart" class="cart-btn">
+                <i class="fas fa-shopping-bag"></i>
+                <span class="cart-badge"><%= typeof cartCount !== 'undefined' ? cartCount : 0 %></span>
+            </a>
+        </div>
+    </nav>
+
+    <div class="page-center">
+        <div class="login-box">
+            <h2 class="section-title">Đổi Mật Khẩu</h2>
+
+            <% if (error) { %>
+            <div class="alert alert-error"><i class="fas fa-exclamation-circle"></i> <%= error %></div>
+            <% } %>
+            <% if (success) { %>
+            <div class="alert alert-success"><i class="fas fa-check-circle"></i> <%= success %></div>
+            <% } %>
+
+            <form action="/Doimatkhau" method="POST">
+
+                <div class="form-group">
+                    <label>Email đăng ký</label>
+                    <div class="input-group">
+                        <input type="email" id="email" name="email" class="form-control" required placeholder="Nhập email của bạn">
+                        <button type="button" class="btn-otp" id="btn-otp">Lấy OTP</button>
+                    </div>
+                    <small id="otp-msg" style="display: none; margin-top: 5px; font-weight: 500;"></small>
+                </div>
+
+                <div class="form-group">
+                    <label>Mã xác thực (OTP)</label>
+                    <input type="text" name="otp" class="form-control" required placeholder="Nhập 6 số trong email" maxlength="6" style="letter-spacing: 2px; font-weight: bold; text-align: center;">
+                </div>
+
+                <div class="form-group">
+                    <label>Mật khẩu mới</label>
+                    <input type="password" name="newpassword" class="form-control" required placeholder="••••••••">
+                </div>
+
+                <div class="form-group">
+                    <label>Xác nhận mật khẩu mới</label>
+                    <input type="password" name="confirmnewpassword" class="form-control" required placeholder="••••••••">
+                </div>
+
+                <button class="btn-submit" type="submit">XÁC NHẬN ĐỔI</button>
+
+                <div style="margin-top: 20px; font-size: 14px;">
+                    <a href="/login" style="color: #666; text-decoration: underline;">Quay lại Đăng nhập</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-logo">BINSTUDIO</div>
+        <div class="footer-info">
+            <span><i class="fas fa-map-marker-alt" style="color: var(--primary); width: 20px;"></i> 202/7 Huỳnh Văn Bánh, P.11, Q.Phú Nhuận, TP.HCM</span>
+            <span><i class="fas fa-phone" style="color: var(--primary); width: 20px;"></i> 037 241 2155</span>
+            <span>
+                <i class="fas fa-envelope" style="color: var(--primary); width: 20px;"></i>
+                manchic2612@gmail.com
+            </span>
+        </div>
+        <div class="copyright">&copy; 2026 BinStudio. Thiết kế đẳng cấp quý ông.</div>
+    </footer>
+
+    <script>
+        const btnOtp = document.getElementById('btn-otp');
+        const emailInput = document.getElementById('email');
+        const msg = document.getElementById('otp-msg');
+        const COOLDOWN_KEY = 'otp_cooldown_end';
+
+        // --- HÀM ĐẾM NGƯỢC ---
+        function startCountdown(seconds) {
+            let countdown = seconds;
+            btnOtp.disabled = true;
+            btnOtp.innerText = `Gửi lại (${countdown}s)`;
+
+            const interval = setInterval(() => {
+                countdown--;
+                btnOtp.innerText = `Gửi lại (${countdown}s)`;
+
+                if (countdown < 0) {
+                    clearInterval(interval);
+                    btnOtp.innerText = "Lấy OTP";
+                    btnOtp.disabled = false;
+                    localStorage.removeItem(COOLDOWN_KEY);
+                }
+            }, 1000);
+        }
+
+        // --- CHECK LỊCH SỬ KHI LOAD TRANG ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedEndTime = localStorage.getItem(COOLDOWN_KEY);
+            if (savedEndTime) {
+                const now = Date.now();
+                const remainingSeconds = Math.ceil((parseInt(savedEndTime) - now) / 1000);
+                if (remainingSeconds > 0) startCountdown(remainingSeconds);
+                else localStorage.removeItem(COOLDOWN_KEY);
+            }
+        });
+
+        // --- SỰ KIỆN CLICK ---
+        btnOtp.addEventListener('click', async () => {
+            const email = emailInput.value;
+            msg.style.display = 'none';
+
+            if (!email) {
+                msg.style.display = 'block';
+                msg.innerText = "Vui lòng nhập email trước!";
+                msg.style.color = '#c62828';
+                return;
+            }
+
+            const originalText = "Lấy OTP";
+            btnOtp.innerText = "Đang gửi...";
+            btnOtp.disabled = true;
+
+            try {
+                const response = await fetch('/get-otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, type: 'forgot' })
+                });
+
+                const data = await response.json();
+                msg.style.display = 'block';
+                msg.innerText = data.message;
+
+                if (data.success) {
+                    msg.style.color = '#2e7d32'; // Xanh lá
+                    const cooldownSeconds = 60;
+                    const endTime = Date.now() + (cooldownSeconds * 1000);
+                    localStorage.setItem(COOLDOWN_KEY, endTime);
+                    startCountdown(cooldownSeconds);
+                } else {
+                    msg.style.color = '#c62828'; // Đỏ
+                    btnOtp.disabled = false;
+                    btnOtp.innerText = originalText;
+                }
+            } catch (error) {
+                console.error(error);
+                msg.style.display = 'block';
+                msg.innerText = "Lỗi kết nối server!";
+                msg.style.color = '#c62828';
+                btnOtp.disabled = false;
+                btnOtp.innerText = originalText;
+            }
+        });
+    </script>
+</body>
+</html>

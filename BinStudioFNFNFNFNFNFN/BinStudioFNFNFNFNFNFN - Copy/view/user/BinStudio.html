@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BinStudio - Vest nam cao cấp</title>
+    <link rel="stylesheet" href="/css/BinStudio.css">
+</head>
+<body>
+    <nav>
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap" rel="stylesheet">
+        <div class="logo">
+            <a href="/" class="logo-link">
+                <span class="logo-text">BinStudio</span>
+            </a>
+        </div>
+        <div class="nav-links">
+            <% if (user) { %>
+            <span class="user-welcome">
+                Xin chào, <%= user.fullName ? user.fullName : user.email.split('@')[0] %>
+            </span>
+            <a href="/logout" style="color: #ff4d4d;">Đăng xuất</a>
+            <% } else { %>
+            <a href="/login">Đăng nhập</a>
+            <a href="/register">Đăng ký</a>
+            <% } %>
+            <a href="/order">Đơn hàng</a>
+            <a href="/cart" class="cart-btn">
+                <span style="display: inline-block;">🛒</span>
+                <span class="cart-badge"><%= cartCount %></span>
+            </a>
+        </div>
+    </nav>
+
+    <div class="categories">
+        <a href="/Vest">Vest</a>
+        <a href="/Quan">Quần</a>
+        <a href="/Aosomi">Áo sơ mi</a>
+        <a href="/Aodai">Áo dài</a>
+        <a href="/Phukien">Phụ kiện</a>
+    </div>
+
+
+    <div class="hero-banner">
+        <div class="banner-content">
+            <h4>EXCLUSIVE COLLECTION</h4>
+            <h1>SALE OFF 50%</h1>
+            <p>Nâng tầm phong cách quý ông với những thiết kế Vest thượng lưu.</p>
+        </div>
+    </div>
+
+    <div class="service-section">
+        <div class="service-item">
+            <div class="service-icon">👔</div>
+            <h3>MAY ĐO THIẾT KẾ</h3>
+            <p>Đo may theo form dáng riêng biệt của từng khách hàng.</p>
+        </div>
+        <div class="service-item">
+            <div class="service-icon">🤝</div>
+            <h3>CHO THUÊ CAO CẤP</h3>
+            <p>Giải pháp tối ưu cho tiệc cưới, sự kiện và chụp ảnh.</p>
+        </div>
+        <div class="service-item">
+            <div class="service-icon">🛍️</div>
+            <h3>BÁN SẴN PREMIUM</h3>
+            <p>Các mẫu Vest sẵn sàng phục vụ quý ông ngay lập tức.</p>
+        </div>
+    </div>
+    <div class="container">
+        <h2 class="section-title">SẢN PHẨM NỔI BẬT</h2>
+
+        <div class="product-grid luxury-grid">
+            <% products.forEach(function(product) { %>
+            <div class="product-card">
+
+                <div class="badge-hot">HOT</div>
+
+                <div class="product-img-wrapper">
+                    <a href="/product/<%= product._id %>">
+                        <img src="<%= Array.isArray(product.image) ? product.image[0] : product.image %>" alt="<%= product.name %>">
+                    </a>
+                </div>
+
+                <div class="product-info">
+                    <a href="/product/<%= product._id %>" style="text-decoration: none;">
+                        <h3><%= product.name %></h3>
+                    </a>
+
+                    <p class="product-price"><%= product.price.toLocaleString() %>đ</p>
+
+                    <a href="/product/<%= product._id %>" class="btn-xct">XEM CHI TIẾT</a>
+                </div>
+
+            </div>
+            <% }); %>
+        </div>
+    </div>
+
+    <div class="celeb-section">
+        <h2 class="section-title">BINSTUDIO & CELEBRITIES</h2>
+        <p style="text-align: center; color: #888; margin-bottom: 30px;">Những gương mặt nghệ sĩ tin dùng dịch vụ của chúng tôi</p>
+        <div class="celeb-grid">
+            <div class="celeb-card">
+                <img src="https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=400" alt="Celeb 1">
+                <div class="celeb-name">Diễn viên A</div>
+            </div>
+            <div class="celeb-card">
+                <img src="https://images.unsplash.com/photo-1550246140-5119ae4790b8?w=400" alt="Celeb 2">
+                <div class="celeb-name">Ca sĩ B</div>
+            </div>
+            <div class="celeb-card">
+                <img src="https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=400" alt="Celeb 3">
+                <div class="celeb-name">MC C</div>
+            </div>
+        </div>
+    </div>
+    <footer>
+        <div style="font-weight: bold; color: white; letter-spacing: 2px; margin-bottom: 15px;">BINSTUDIO</div>
+        <div class="footer-info">
+            <span>📍 Địa chỉ: 202/2 Huỳnh Văn Bánh, Phường 11, Quận Phú Nhuận, TP. Hồ Chí Minh</span>
+            <span>📞 Điện thoại: 0x.xxx.xxx.xx</span>
+            <span>✉️ Email: contact@binstudio.vn</span>
+        </div>
+        <hr style="border: 0; border-top: 1px solid #333; margin: 20px auto; width: 50px;">
+        <div>&copy; 2026 BinStudio. All rights reserved.</div>
+    </footer>
+</body>
+    </html>

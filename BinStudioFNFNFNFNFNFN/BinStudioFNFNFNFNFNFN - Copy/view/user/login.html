@@ -1,0 +1,85 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BinStudio - Vest nam cao cấp</title>
+    <link rel="stylesheet" href="/css/BinStudio.css">
+</head>
+<body>
+    <nav>
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap" rel="stylesheet">
+        <div class="logo">
+            <a href="/" class="logo-link">
+                <span class="logo-text">BinStudio</span>
+            </a>
+        </div>
+        <div class="nav-links">
+            <% if (user) { %>
+            <span class="user-welcome">
+                Xin chào, <%= user.fullName ? user.fullName : user.email.split('@')[0] %>
+            </span>
+            <a href="/logout" style="color: #ff4d4d;">Đăng xuất</a>
+            <% } else { %>
+            <a href="/login">Đăng nhập</a>
+            <a href="/register">Đăng ký</a>
+            <% } %>
+            <a href="/order">Đơn hàng</a>
+            <a href="/cart" class="cart-btn">
+                <span style="display: inline-block;">🛒</span>
+                <span class="cart-badge"><%= cartCount %></span>
+            </a>
+        </div>
+    </nav>
+
+    <div class="categories">
+        <a href="/Vest">Vest</a>
+        <a href="/Quan">Quần</a>
+        <a href="/Aosomi">Áo sơ mi</a>
+        <a href="/Aodai">Áo dài</a>
+        <a href="/Phukien">Phụ kiện</a>
+    </div>
+    <div id="login" class="page">
+        <div class="page-center">
+            <div class="login-box">
+                <h2 class="section-title">Đăng nhập</h2>
+                <% if (typeof error !== 'undefined' && error) { %>
+                <div style="background-color: #ffebee; color: #c62828; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ffcdd2; text-align: center; font-weight: bold;">
+                    ⚠️ <%= error %>
+                </div>
+                <% } %>
+
+                <% if (typeof success !== 'undefined' && success) { %>
+                <div style="background-color: #e8f5e9; color: #2e7d32; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #c8e6c9; text-align: center; font-weight: bold;">
+                    ✅ <%= success %>
+                </div>
+                <% } %>
+                <form action="/login" method="POST">
+                    <div style="margin-bottom: 15px; text-align: left;">
+                        <label>Email hoặc Số điện thoại</label>
+                        <input type="text" name="email" style="width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    <div style="margin-bottom: 20px; text-align: left;">
+                        <label>Mật khẩu</label>
+                        <input type="password" name="password" style="width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    <button class="btn-add" type="submit">Đăng nhập ngay</button>
+                </form>
+                <p style="text-align: center; margin-top: 20px;">Chưa có tài khoản? <a href="/register" ," style="color: var(--accent); cursor: pointer; text-decoration: underline;">Đăng ký ngay</a></p>
+                <p style="text-align: center; margin-top: 20px;">Quên mật khẩu? <a href="/Doimatkhau" ," style="color: var(--accent); cursor: pointer; text-decoration: underline;">Đổi mật khẩu</a></p>
+            </div>
+        </div>
+    </div>
+    <footer>
+        <div style="font-weight: bold; color: white; letter-spacing: 2px; margin-bottom: 15px;">BINSTUDIO</div>
+        <div class="footer-info">
+            <span>📍 Địa chỉ: 202/2 Huỳnh Văn Bánh, Phường 11, Quận Phú Nhuận, TP. Hồ Chí Minh</span>
+            <span>📞 Điện thoại: 0x.xxx.xxx.xx</span>
+            <span>✉️ Email: contact@binstudio.vn</span>
+        </div>
+        <hr style="border: 0; border-top: 1px solid #333; margin: 20px auto; width: 50px;">
+        <div>&copy; 2026 BinStudio. All rights reserved.</div>
+    </footer>
+</body>
+</html>

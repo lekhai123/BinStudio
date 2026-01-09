@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BinStudio - <%= product.name %></title>
+    <link rel="stylesheet" href="/css/BinStudio.css">
+    <style>
+        /* CSS nút chọn size */
+        .size-label {
+            padding: 8px 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            display: inline-block;
+            transition: 0.3s;
+            min-width: 40px;
+            text-align: center;
+        }
+        /* Style khi được chọn */
+        input[type="radio"]:checked + .size-label {
+            background: #222;
+            color: white;
+            border-color: #222;
+        }
+        /* Style khi hết hàng */
+        .size-item.disabled .size-label {
+            background: #eee;
+            color: #999;
+            cursor: not-allowed;
+            text-decoration: line-through;
+            border-color: #eee;
+        }
+
+        .qty-btn {
+            width: 35px;
+            height: 35px;
+            border: 1px solid #ddd;
+            background: #fff;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .thumb-img:hover {
+            border-color: #222 !important;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap" rel="stylesheet">
+        <div class="logo"><a href="/" class="logo-link"><span class="logo-text">BinStudio</span></a></div>
+        <div class="nav-links">
+            <% if (user) { %>
+            <span class="user-welcome">Xin chào, <%= user.fullName || user.email.split('@')[0] %></span>
+            <a href="/logout" style="color: #ff4d4d;">Đăng xuất</a>
+            <% } else { %>
+            <a href="/login">Đăng nhập</a>
+            <a href="/register">Đăng ký</a>
+            <% } %>
+            <a href="/order">Đơn hàng</a>
+            <a href="/cart" class="cart-btn">
+                <span style="display: inline-block;">🛒</span>
+                <span class="cart-badge"><%= cartCount %></span>
+            </a>
+
+        </div>
+    </nav>
+
+    <div class="categories">
+        <a href="/Vest">Vest</a> <a href="/Quan">Quần</a> <a href="/Aosomi">Áo sơ mi</a> <a href="/Aodai">Áo dài</a> <a href="/Phukien">Phụ kiện</a>
+    </div>
+
+    <div class="container" style="display: flex; gap: 40px; margin-top: 50px; align-items: flex-start;">
+        <div class="product-image-side" style="flex: 1.2;">
+            <div style="border: 1px solid #eee; border-radius: 8px; overflow: hidden; margin-bottom: 15px;">
+                <img src="<%= product.image[0] %>" id="main-img" style="width: 100%; display: block;">
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <% product.image.forEach(url => { %>
+                <% if (url.includes('.mp4') || url.includes('.mov')) { %>
+                <video src="<%= url %>" controls style="width: 100%; border-radius: 8px;"></video>
+                <% } else { %>
+                <img src="<%= url %>" alt="Product" style="width: 100%;">
+                <% } %>
+                <% }) %>
+            </div>
+        </div>
+
+        <div class="product-info-side" style="flex: 1;">
+            <h1><%= product.name %></h1>
+            <h2 style="color: #b19470; margin: 15px 0;"><%= product.price.toLocaleString() %>đ</h2>
+            <p style="color: #666; line-height: 1.6; margin-bottom: 25px;"><%= product.description %></p>
+
+            <div class="purchase-section">
+                <% if (product.variants && product.variants.length > 0) { %>
+                <p style="margin-bottom: 10px;"><b>Kích cỡ (Còn lại):</b></p>
+
+                <div class="size-picker" style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                    <% product.variants.forEach((v, index) => { %>
+                    <label class="size-item <%= v.stock <= 0 ? 'disabled' : '' %>">
+                        <input type="radio" name="productSize" value="<%= v.size %>"
+                               data-stock="<%= v.stock %>"
+                        <%= (v.stock > 0 && index === 0) ? 'checked' : '' %>
+                        <%= v.stock <= 0 ? 'disabled' : '' %>
+                        style="display: none;">
+
+                        <span class="size-label">
+                            <%= v.size %>
+                            <small style="font-size: 0.8em; color: #666;">(<%= v.stock %>)</small>
+                        </span>
+                    </label>
+                    <% }) %>
+                </div>
+                <% } %>
+
+                <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 25px;">
+                    <span class="option-label">Số lượng:</span>
+                    <div class="quantity-picker" style="display: flex; align-items: center; border: 1px solid #ddd; width: fit-content; border-radius: 4px;">
+                        <button type="button" class="qty-btn minus">-</button>
+                        <input type="number" id="stock-input" value="1" min="1" max="1" readonly style="width: 50px; text-align: center; border: none; font-weight: bold; background: transparent;">
+                        <button type="button" class="qty-btn plus">+</button>
+                    </div>
+                    <span id="stock-alert" style="color: red; font-size: 0.9em; display: none;"></span>
+                </div>
+
+                <form id="add-cart-form">
+                    <input type="hidden" name="productId" value="<%= product._id %>">
+                    <input type="hidden" name="quantity" id="hidden-quantity" value="1">
+                    <input type="hidden" name="size" id="hidden-size" value="">
+                    <button type="submit" class="btn-add" style="width: 100%; padding: 15px; background: #222; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">THÊM VÀO GIỎ HÀNG</button>
+                </form>
+                <div style="margin-top: 30px; padding: 15px; background: #fcfcfc; border-radius: 4px; font-size: 13px; color: #666; border: 1px solid #f0f0f0;">
+                    ✓ Miễn phí vận chuyển toàn quốc<br>
+                    ✓ Đổi trả trong vòng 7 ngày nếu lỗi nhà sản xuất<br>
+                    ✓ Cam kết hàng chính hãng BinStudio
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <footer>
+        <div style="font-weight: bold; color: white; letter-spacing: 2px; margin-bottom: 15px;">BINSTUDIO</div>
+        <div class="footer-info">
+            <span>📍 Địa chỉ: 202/2 Huỳnh Văn Bánh, Phường 11, Quận Phú Nhuận, TP. Hồ Chí Minh</span>
+            <span>📞 Điện thoại: 0x.xxx.xxx.xx</span>
+            <span>✉️ Email: contact@binstudio.vn</span>
+        </div>
+        <hr style="border: 0; border-top: 1px solid #333; margin: 20px auto; width: 50px;">
+        <div>&copy; 2026 BinStudio. All rights reserved.</div>
+    </footer>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const qtyInput = document.getElementById('stock-input');
+            const hiddenQty = document.getElementById('hidden-quantity');
+            const hiddenSize = document.getElementById('hidden-size');
+            const sizeInputs = document.querySelectorAll('input[name="productSize"]');
+            const stockAlert = document.getElementById('stock-alert');
+
+            // --- HÀM CẬP NHẬT TỒN KHO KHI ĐỔI SIZE ---
+            function updateStockInfo() {
+                const selected = document.querySelector('input[name="productSize"]:checked');
+                if (selected) {
+                    const maxStock = parseInt(selected.getAttribute('data-stock'));
+                    qtyInput.setAttribute('max', maxStock);
+                    hiddenSize.value = selected.value;
+
+                    // Reset số lượng về 1 nếu đang vượt quá kho
+                    if (parseInt(qtyInput.value) > maxStock) {
+                        qtyInput.value = 1;
+                        hiddenQty.value = 1;
+                    }
+
+                    // Hiển thị thông báo nếu kho ít
+                    if (maxStock < 5) {
+                        stockAlert.style.display = 'inline';
+                        stockAlert.innerText = `Chỉ còn ${maxStock} sản phẩm!`;
+                    } else {
+                        stockAlert.style.display = 'none';
+                    }
+                }
+            }
+
+            // Gắn sự kiện khi click chọn size
+            sizeInputs.forEach(input => input.addEventListener('change', updateStockInfo));
+            // Chạy 1 lần ngay khi vào trang để lấy size mặc định
+            updateStockInfo();
+
+            // --- XỬ LÝ NÚT TĂNG GIẢM ---
+            document.querySelector('.qty-btn.plus').addEventListener('click', () => {
+                let current = parseInt(qtyInput.value);
+                let max = parseInt(qtyInput.getAttribute('max'));
+                if (current < max) {
+                    current++;
+                    qtyInput.value = current;
+                    hiddenQty.value = current;
+                } else {
+                    alert(`Xin lỗi, size này chỉ còn ${max} sản phẩm.`);
+                }
+            });
+
+            document.querySelector('.qty-btn.minus').addEventListener('click', () => {
+                let current = parseInt(qtyInput.value);
+                if (current > 1) {
+                    current--;
+                    qtyInput.value = current;
+                    hiddenQty.value = current;
+                }
+            });
+
+            // --- AJAX THÊM GIỎ HÀNG ---
+            // --- AJAX THÊM GIỎ HÀNG (CODE ĐÃ SỬA) ---
+            const addCartForm = document.getElementById('add-cart-form');
+            addCartForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = addCartForm.querySelector('button');
+                const originalText = btn.innerText;
+
+                // 1. Validate Size
+                if (!hiddenSize.value) {
+                    alert("Vui lòng chọn kích cỡ!");
+                    return;
+                }
+
+                btn.innerText = "Đang xử lý...";
+                btn.disabled = true;
+
+                // 2. Chuẩn bị dữ liệu JSON
+                const payload = {
+                    productId: addCartForm.querySelector('input[name="productId"]').value,
+                    quantity: parseInt(hiddenQty.value),
+                    size: hiddenSize.value
+                };
+
+                try {
+                    const res = await fetch('/add-to-cart', { // Đảm bảo route này khớp với file Route bên dưới
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json' // Báo cho server biết đây là JSON
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    // Kiểm tra nếu server trả về lỗi HTTP (ví dụ 404, 500)
+                    if (!res.ok) throw new Error("Server Error");
+
+                    const data = await res.json(); // Nếu server trả về HTML thay vì JSON, dòng này sẽ gây lỗi catch
+
+                    if (data.success) {
+                        // Cập nhật số lượng trên giỏ hàng header (nếu có id cart-badge)
+                        const cartBadge = document.querySelector('.cart-badge');
+                        if (cartBadge) cartBadge.innerText = data.cartCount;
+
+                        btn.style.background = "#28a745";
+                        btn.innerText = "ĐÃ THÊM ✔";
+                        setTimeout(() => {
+                            btn.style.background = "#222";
+                            btn.innerText = originalText;
+                            btn.disabled = false;
+                        }, 2000);
+                    } else {
+                        alert(data.message || "Lỗi không xác định");
+                        btn.innerText = originalText;
+                        btn.disabled = false;
+                    }
+                } catch (err) {
+                    console.error("Lỗi chi tiết:", err);
+                    // Nếu lỗi do chưa đăng nhập (thường server redirect về login trả về HTML)
+                    alert("Có lỗi xảy ra hoặc bạn chưa đăng nhập!");
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                }
+            });
+        });
+    </script>
+    <script>
+        document.querySelectorAll('.product-image-side img:not(#main-img)').forEach(img => {
+            img.addEventListener('click', () => {
+                document.getElementById('main-img').src = img.src;
+            });
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BinStudio - Đăng nhập</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        /* --- 1. CẤU HÌNH MÀU SẮC (THEME LUXURY) --- */
+        :root {
+            --primary: #d1b06b;
+            --primary-hover: #c5a059;
+            --dark: #111111;
+            --light: #f4f4f4;
+            --text-gray: #666;
+            --white: #ffffff;
+            --font-heading: 'Playfair Display', serif;
+            --font-body: 'Montserrat', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background-color: var(--light); /* Nền xám nhẹ cho nổi bật khung login */
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+            transition: 0.3s;
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        /* --- 2. HEADER (ĐỒNG BỘ) --- */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 5%;
+            background: var(--white);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .logo-text {
+            font-family: var(--font-heading);
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--dark);
+            letter-spacing: 1px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            margin-right: 15px;
+        }
+
+            .nav-links a {
+                font-size: 14px;
+                font-weight: 500;
+                color: var(--dark);
+            }
+
+                .nav-links a:hover {
+                    color: var(--primary);
+                }
+
+        /* Nút giỏ hàng Luxury */
+        .cart-btn {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--dark);
+            font-size: 24px;
+            margin-left: 15px;
+        }
+
+            .cart-btn:hover {
+                transform: scale(1.1);
+                color: var(--primary);
+            }
+
+        .cart-badge {
+            position: absolute;
+            top: -5px;
+            right: -17px;
+            background-color: var(--primary);
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 700;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #ffffff;
+        }
+
+        /* --- 3. LOGIN BOX (PHẦN CHÍNH) --- */
+        .page-center {
+            flex: 1; /* Đẩy footer xuống đáy */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 60px 20px;
+        }
+
+        .login-box {
+            background: var(--white);
+            width: 100%;
+            max-width: 450px;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08); /* Đổ bóng sang trọng */
+            text-align: center;
+        }
+
+        .section-title {
+            font-family: var(--font-heading);
+            font-size: 32px;
+            margin-bottom: 30px;
+            color: var(--dark);
+        }
+
+        /* Input Styles */
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+            .form-group label {
+                display: block;
+                font-weight: 600;
+                font-size: 14px;
+                margin-bottom: 8px;
+                color: #333;
+            }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: var(--font-body);
+            transition: 0.3s;
+        }
+
+            .form-control:focus {
+                border-color: var(--primary);
+                outline: none;
+                box-shadow: 0 0 0 3px rgba(209, 176, 107, 0.1);
+            }
+
+        /* Button Styles */
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            margin-top: 10px;
+            background: var(--dark);
+            color: var(--white);
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: 0.3s;
+            letter-spacing: 1px;
+        }
+
+            .btn-submit:hover {
+                background: var(--primary);
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(209, 176, 107, 0.3);
+            }
+
+        /* Links Footer Form */
+        .form-footer {
+            margin-top: 25px;
+            font-size: 14px;
+            color: #666;
+        }
+
+            .form-footer a {
+                color: var(--dark);
+                font-weight: 600;
+                text-decoration: underline;
+            }
+
+                .form-footer a:hover {
+                    color: var(--primary);
+                }
+
+        /* Alerts */
+        .alert {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .alert-error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+
+        .alert-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+
+        /* --- 4. FOOTER (ĐỒNG BỘ) --- */
+        footer {
+            background: #0a0a0a;
+            color: #ddd;
+            padding: 60px 5% 20px;
+            text-align: center;
+            margin-top: auto;
+        }
+
+        .footer-logo {
+            font-family: var(--font-heading);
+            font-size: 24px;
+            color: var(--white);
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            display: inline-block;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+        }
+
+        .footer-info {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .copyright {
+            font-size: 12px;
+            color: #555;
+            border-top: 1px solid #222;
+            padding-top: 20px;
+        }
+
+        /* Icon footer */
+        a:hover img[alt="Zalo"] {
+            filter: none !important;
+            transform: scale(1.1);
+        }
+
+        a:hover .fa-facebook {
+            color: #1877F2 !important;
+        }
+        /* --- MOBILE RESPONSIVE (TỐI ƯU TRANG ĐĂNG NHẬP) --- */
+        @media (max-width: 768px) {
+
+            /* 1. ĐỒNG BỘ HEADER */
+            nav {
+                padding: 15px 4%;
+            }
+
+            .logo-text {
+                font-size: 20px;
+            }
+
+            .nav-links {
+                gap: 15px;
+                margin-right: 0;
+            }
+
+                .nav-links span {
+                    font-size: 12px;
+                }
+
+            .cart-btn {
+                font-size: 22px;
+                margin-left: 5px;
+            }
+
+            /* 2. TỐI ƯU FORM ĐĂNG NHẬP */
+            .page-center {
+                padding: 20px 4%; /* Giảm lề ngoài */
+                min-height: 70vh;
+                /* Quan trọng: Đẩy form lên trên để tránh bàn phím che */
+                align-items: flex-start;
+                padding-top: 50px;
+            }
+
+            .login-box {
+                padding: 30px 20px; /* Giảm padding trong hộp */
+                box-shadow: 0 5px 15px rgba(0,0,0,0.05); /* Bóng mờ nhẹ hơn */
+            }
+
+            .section-title {
+                font-size: 24px; /* Tiêu đề nhỏ lại */
+                margin-bottom: 25px;
+            }
+
+            /* Tối ưu ô nhập liệu (Input) */
+            .form-group {
+                margin-bottom: 15px;
+            }
+
+            .form-control {
+                font-size: 16px; /* Chuẩn iOS để không bị zoom */
+                padding: 12px; /* Tăng vùng chạm */
+            }
+
+            /* Nút Đăng nhập to rõ dễ bấm */
+            .btn-submit {
+                padding: 14px;
+                font-size: 14px;
+                margin-top: 15px;
+            }
+
+            /* Phần Footer form (Quên mật khẩu / Đăng ký) */
+            .form-footer {
+                margin-top: 20px;
+                font-size: 13px;
+            }
+
+                .form-footer p {
+                    margin-bottom: 8px; /* Tách dòng ra cho dễ nhìn */
+                }
+
+            /* 3. FOOTER */
+            footer {
+                padding: 40px 5% 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">
+            <a href="/" class="logo-link">
+                <span class="logo-text">BinStudio</span>
+            </a>
+        </div>
+        <div class="nav-links">
+            <% if (user) { %>
+            <span>Xin chào, <b><%= user.fullName ? user.fullName : 'User' %></b></span>
+            <a href="/logout" title="Đăng xuất"><i class="fas fa-sign-out-alt"></i></a>
+            <% } else { %>
+            <a href="/login" style="color: var(--primary);">Đăng nhập</a>
+            <a href="/register">Đăng ký</a>
+            <% } %>
+            <a href="/order" title="Lịch sử đơn"><i class="fas fa-box"></i></a>
+            <a href="/cart" class="cart-btn">
+                <i class="fas fa-shopping-bag"></i>
+                <span class="cart-badge"><%= typeof cartCount !== 'undefined' ? cartCount : 0 %></span>
+            </a>
+        </div>
+    </nav>
+
+    <div class="page-center">
+        <div class="login-box">
+            <h2 class="section-title">CHÀO MỪNG TRỞ LẠI</h2>
+
+            <% if (typeof error !== 'undefined' && error) { %>
+            <div class="alert alert-error">
+                <i class="fas fa-exclamation-circle"></i> <%= error %>
+            </div>
+            <% } %>
+
+            <% if (typeof success !== 'undefined' && success) { %>
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i> <%= success %>
+            </div>
+            <% } %>
+
+            <form action="/login" method="POST">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="text" name="email" class="form-control" placeholder="Nhập địa chỉ email" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Mật khẩu</label>
+                    <input type="password" name="password" class="form-control" placeholder="Nhập mật khẩu" required>
+                </div>
+
+                <button class="btn-submit" type="submit">ĐĂNG NHẬP NGAY</button>
+            </form>
+
+            <div class="form-footer">
+                <p style="margin-bottom: 10px;">
+                    Quên mật khẩu? <a href="/Doimatkhau">Lấy lại mật khẩu</a>
+                </p>
+                <p>
+                    Chưa có tài khoản? <a href="/register">Đăng ký ngay</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-logo">BINSTUDIO</div>
+        <div class="footer-info">
+            <span><i class="fas fa-map-marker-alt" style="color: var(--primary); width: 20px;"></i> 202/7 Huỳnh Văn Bánh, P.11, Q.Phú Nhuận, TP.HCM</span>
+            <span><i class="fas fa-phone" style="color: var(--primary); width: 20px;"></i> 037 241 2155</span>
+            <span>
+                <i class="fas fa-envelope" style="color: var(--primary); width: 20px;"></i>
+                manchic2612@gmail.com
+            </span>
+        </div>
+        <div style="margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 15px;">
+            <a href="https://www.facebook.com/manchic2612" target="_blank" style="font-size: 24px; color: #ddd;">
+                <i class="fab fa-facebook"></i>
+            </a>
+            <a href="https://zalo.me/0372412155" target="_blank" style="display: flex; align-items: center;">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg" alt="Zalo" style="width: 24px; height: 24px; filter: grayscale(100%) brightness(200%); transition: 0.3s;">
+            </a>
+        </div>
+
+        <div class="copyright">
+            &copy; 2026 BinStudio. Thiết kế đẳng cấp quý ông.
+        </div>
+    </footer>
+
+</body>
+</html>

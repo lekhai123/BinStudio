@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BinStudio - Quản lý kho hàng</title>
+    <link rel="stylesheet" href="/css/admin-style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;900&display=swap" rel="stylesheet">
+    <style>
+        /* GIỮ NGUYÊN CSS CỦA BẠN */
+        :root {
+            --accent: #d1b06b;
+            --bg: #f4f7f6;
+            --sidebar-bg: #222;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .admin-layout {
+            display: flex;
+            min-height: 100vh;
+            background: var(--bg);
+        }
+
+        .sidebar {
+            width: 260px;
+            background: var(--sidebar-bg);
+            color: white;
+            padding: 25px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+        }
+
+            .sidebar h2 {
+                font-family: 'Montserrat';
+                font-size: 22px;
+                color: var(--accent);
+                margin-bottom: 35px;
+                text-align: center;
+            }
+
+        .sidebar-menu {
+            list-style: none;
+        }
+
+            .sidebar-menu li {
+                padding: 15px 0;
+                border-bottom: 1px solid #333;
+            }
+
+            .sidebar-menu a {
+                color: #bbb;
+                text-decoration: none;
+                font-size: 14px;
+                display: block;
+                transition: 0.3s;
+            }
+
+                .sidebar-menu a:hover {
+                    color: white;
+                    transform: translateX(5px);
+                }
+
+        .main-content {
+            flex: 1;
+            padding: 40px;
+        }
+
+        .header-main {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+        .alert-card {
+            border-left: 5px solid #d32f2f;
+            background: #fff5f5;
+        }
+
+            .alert-card h4 {
+                color: #d32f2f;
+                margin-bottom: 10px;
+                display: flex;
+                align-items: center;
+            }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .product-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+            .product-table th {
+                background: #f8f9fa;
+                padding: 15px;
+                text-align: left;
+                font-size: 13px;
+                color: #666;
+                text-transform: uppercase;
+            }
+
+            .product-table td {
+                padding: 15px;
+                border-bottom: 1px solid #eee;
+                vertical-align: middle;
+            }
+
+        .img-thumb {
+            width: 50px;
+            height: 65px;
+            object-fit: cover;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .badge-hidden {
+            background: #eee;
+            color: #666;
+        }
+
+        .stock-warning {
+            color: #d32f2f;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background: var(--sidebar-bg);
+            color: white;
+            text-decoration: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+            .btn-primary:hover {
+                background: #000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            }
+
+        .actions {
+            display: flex;
+            gap: 5px;
+        }
+
+            .actions button, .actions a {
+                padding: 6px 12px;
+                border: 1px solid #ddd;
+                background: white;
+                cursor: pointer;
+                border-radius: 6px;
+                font-size: 13px;
+                transition: 0.2s;
+                text-decoration: none;
+                color: #333;
+                display: inline-block;
+            }
+
+                .actions button:hover, .actions a:hover {
+                    background: #f0f0f0;
+                }
+
+        .btn-delete:hover {
+            color: white !important;
+            background: #dc3545 !important;
+            border-color: #dc3545 !important;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border: 1px solid #c3e6cb;
+        }
+        /* --- CSS CHO THANH TÌM KIẾM --- */
+        .filter-bar {
+            display: flex;
+            gap: 10px;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #eee;
+            align-items: center;
+            flex-wrap: wrap; /* Để responsive trên mobile */
+        }
+
+        .filter-input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            outline: none;
+            font-size: 14px;
+        }
+
+            .filter-input:focus {
+                border-color: var(--sidebar-bg);
+            }
+
+        .btn-filter {
+            background: var(--sidebar-bg);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-reset {
+            background: white;
+            color: #666;
+            border: 1px solid #ddd;
+            padding: 10px 15px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="admin-layout">
+        <aside class="sidebar">
+            <h2>BinStudio Admin</h2>
+            <ul class="sidebar-menu">
+                <li><a href="/admin">📊 Bảng điều khiển</a></li>
+                <li><a href="/admin/products" style="color: white;">📦 Quản lý Sản phẩm</a></li>
+                <li><a href="/admin/users">👥 Quản lý Người dùng</a></li>
+                <li><a href="/admin/orders">🧾 Đơn hàng & Doanh thu</a></li>
+                <li><a href="/admin/config">⚙️ Cấu hình API và Log</a></li>
+                <li><a href="/admin/homepage" style="color: white;">🏠 Chỉnh sửa Trang chủ</a></li>
+
+                <li><a href="/">🏠 Quay lại Shop</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="header-main">
+                <h1 style="font-size: 28px;">Quản lý kho hàng</h1>
+                <div style="color: #666;">Xin chào, <b>Admin</b></div>
+            </div>
+
+            <% if (lowStockAlerts && lowStockAlerts.length > 0) { %>
+            <div class="card alert-card" style="border-left: 5px solid #ff9800; background: #fff3e0; padding: 20px; margin-bottom: 25px; border-radius: 10px; shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <h4 style="color: #e65100; margin-bottom: 10px; display: flex; align-items: center;">
+                    <span style="font-size: 24px; margin-right: 10px;">⚠️</span>
+                    CẢNH BÁO CÁC SẢN PHẨM SẮP HẾT HÀNG
+                </h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px;">
+                    <% lowStockAlerts.forEach(item => { %>
+                    <div style="background: white; padding: 10px; border-radius: 5px; border: 1px solid #ffe0b2;">
+                        <strong style="color: #333;"><%= item.name %></strong> <br>
+                        <span style="font-size: 13px; color: #666;">Kích thước: </span>
+                        <b style="color: #d32f2f;"><%= item.size %></b>
+                        <span style="font-size: 13px; color: #666;"> - Còn lại: </span>
+                        <b style="color: #d32f2f;"><%= item.stock %></b>
+                    </div>
+                    <% }) %>
+                </div>
+            </div>
+            <% } %>
+
+            <div class="card">
+                <div class="table-header">
+                    <h3 style="color: #444;">Danh sách sản phẩm (<%= products.length %>)</h3>
+                    <a href="/admin/products/add-product" class="btn-primary">
+                        + Thêm sản phẩm mới
+                    </a>
+                </div>
+
+                <form action="/admin/products" method="GET" class="filter-bar">
+                    <div style="flex: 2; min-width: 200px;">
+                        <input type="text" name="keyword" class="filter-input" style="width: 100%;"
+                               placeholder="🔍 Nhập tên sản phẩm..."
+                               value="<%= typeof queryData !== 'undefined' ? queryData.keyword : '' %>">
+                    </div>
+
+                    <div style="flex: 1; min-width: 150px;">
+                        <select name="category" class="filter-input" style="width: 100%;">
+                            <option value="">-- Tất cả danh mục --</option>
+
+                            <option value="vest" <%= (typeof queryData !== 'undefined' && queryData.category === 'vest') ? 'selected' : '' %>>Vest</option>
+                            <option value="quan" <%= (typeof queryData !== 'undefined' && queryData.category === 'quan') ? 'selected' : '' %>>Quần</option>
+                            <option value="aosomi" <%= (typeof queryData !== 'undefined' && queryData.category === 'aosomi') ? 'selected' : '' %>>Áo sơ mi</option>
+                            <option value="aodai" <%= (typeof queryData !== 'undefined' && queryData.category === 'aodai') ? 'selected' : '' %>>Áo dài</option>
+                            <option value="phukien" <%= (typeof queryData !== 'undefined' && queryData.category === 'phukien') ? 'selected' : '' %>>Phụ kiện</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn-filter">Lọc</button>
+
+                    <% if (typeof queryData !== 'undefined' && (queryData.keyword || queryData.category)) { %>
+                    <a href="/admin/products" class="btn-reset">Xóa lọc</a>
+                    <% } %>
+                </form>
+                <table class="product-table">
+                    <table class="product-table">
+                        <thead>
+                            <tr>
+                                <th>Ảnh</th>
+                                <th>Tên sản phẩm</th>
+                                <th>Phân loại</th>
+                                <th>Giá bán</th>
+                                <th>Tổng tồn kho</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% products.forEach(product => { %>
+                            <%
+                            // 1. Tính tổng tồn kho
+                            const totalStock = product.variants.reduce((acc, curr) => acc + curr.stock, 0);
+
+                            // 2. Kiểm tra xem CÓ BẤT KỲ biến thể nào có kho < 3 hay không
+                            const hasLowStockVariant = product.variants.some(v => v.stock < 3);
+                            %>
+                            <tr>
+                                <td>
+                                    <img src="<%= product.image[0] %>" class="img-thumb" alt="<%= product.name %>">
+                                </td>
+                                <td>
+                                    <b><%= product.name %></b>
+                                    <div style="margin-top: 5px;">
+                                        <% product.variants.forEach(v => { %>
+                                        <span style="display: inline-block; background: #f1f1f1; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 4px; margin-bottom: 2px; border: 1px solid #eee; <%= v.stock < 3 ? 'color: #d32f2f; border-color: #ffcdd2; background: #fff5f5;' : '' %>">
+                                            <%= v.size %>: <b><%= v.stock %></b>
+                                        </span>
+                                        <% }) %>
+                                    </div>
+                                </td>
+                                <td style="text-transform: capitalize;"><%= product.category %></td>
+                                <td><%= product.price.toLocaleString('vi-VN') %>đ</td>
+                                <td>
+                                    <span class="<%= hasLowStockVariant ? 'stock-warning' : '' %>" style="font-size: 16px;">
+                                        <%= totalStock %>
+                                    </span>
+                                </td>
+                                <td>
+                                    <% if (product.isHidden) { %>
+                                    <span class="badge badge-hidden">Đang ẩn</span>
+                                    <% } else { %>
+                                    <span class="badge badge-success">Đang bán</span>
+                                    <% } %>
+                                </td>
+                                <td class="actions">
+                                    <a href="/admin/products/edit-product/<%= product._id %>">Sửa</a>
+                                    <form action="/admin/products/toggle-product/<%= product._id %>" method="POST" style="display:inline;">
+                                        <button type="submit">
+                                            <%= product.isHidden ? 'Hiện' : 'Ẩn' %>
+                                        </button>
+                                    </form>
+                                    <form action="/admin/products/toggle-hot/<%= product._id %>" method="POST" style="display:inline;">
+                                        <button type="submit">
+                                            <%= product.isHot ? '🔥Hot' : '⊘Hot' %>
+                                        </button>
+                                    </form>
+                                    <form action="/admin/products/delete-product/<%= product._id %>"
+                                          method="POST"
+                                          style="display:inline;"
+                                          onsubmit="return confirm('Xác nhận xóa?');">
+                                        <button type="submit" class="btn-delete">Xóa</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <% }) %>
+
+                            <% if (products.length === 0) { %>
+                            <tr>
+                                <td colspan="7" style="text-align: center; padding: 30px;">Chưa có sản phẩm nào.</td>
+                            </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

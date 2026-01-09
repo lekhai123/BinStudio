@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BinStudio - Đăng nhập Quản trị viên</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;900&display=swap" rel="stylesheet">
+    <style>
+        /* (Giữ nguyên CSS cũ của bạn) */
+        :root {
+            --accent: #d1b06b;
+            --dark: #1a1a1a;
+            --bg: #f4f7f6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .login-card {
+            background: white;
+            width: 100%;
+            max-width: 400px;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+            .login-card h2 {
+                font-family: 'Montserrat', sans-serif;
+                font-weight: 900;
+                color: var(--dark);
+                margin-bottom: 10px;
+                text-transform: uppercase;
+                letter-spacing: 2px;
+            }
+
+            .login-card p {
+                color: #888;
+                font-size: 14px;
+                margin-bottom: 30px;
+            }
+
+        .form-group {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+            .form-group label {
+                display: block;
+                font-size: 13px;
+                font-weight: 600;
+                margin-bottom: 8px;
+                color: #555;
+            }
+
+            .form-group input {
+                width: 100%;
+                padding: 12px 15px;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                outline: none;
+                transition: 0.3s;
+            }
+
+                .form-group input:focus {
+                    border-color: var(--accent);
+                    box-shadow: 0 0 0 3px rgba(209, 176, 107, 0.1);
+                }
+
+        .btn-login {
+            width: 100%;
+            padding: 15px;
+            background: var(--dark);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+
+            .btn-login:hover {
+                background: #000;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            }
+
+        .error-msg {
+            background-color: #ffebee;
+            color: #c62828;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            border: 1px solid #ef9a9a;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <h2>BinStudio</h2>
+        <p>Hệ thống quản trị viên</p>
+
+        <% if (typeof error !== 'undefined' && error) { %>
+        <div class="error-msg">⚠️ <%= error %></div>
+        <% } %>
+
+        <form action="/admin/login" method="POST">
+            <div class="form-group">
+                <label>Email Quản trị</label>
+                <input type="email" name="email" placeholder="" required>
+            </div>
+
+            <div class="form-group">
+                <label>Mật khẩu</label>
+                <input type="password" name="password" placeholder="" required>
+            </div>
+
+            <button type="submit" class="btn-login">
+                ĐĂNG NHẬP HỆ THỐNG
+            </button>
+        </form>
+
+        <a href="/" style="display: block; margin-top: 20px; font-size: 12px; color: #666; text-decoration: none;">← Quay lại trang chủ</a>
+    </div>
+
+</body>
+</html>

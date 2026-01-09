@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BinStudio - Lịch sử đơn hàng</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        /* --- CẤU HÌNH CHUNG --- */
+        :root {
+            --primary: #d1b06b;
+            --primary-hover: #c5a059;
+            --dark: #111111;
+            --light: #f4f4f4;
+            --text-gray: #666;
+            --white: #ffffff;
+            --font-heading: 'Playfair Display', serif;
+            --font-body: 'Montserrat', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background-color: var(--white);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+            transition: 0.3s;
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        /* --- HEADER & NAVIGATION --- */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 5%;
+            background: var(--white);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .logo-text {
+            font-family: var(--font-heading);
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--dark);
+            letter-spacing: 1px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+            .nav-links a, .nav-links span {
+                font-size: 14px;
+                font-weight: 500;
+                color: var(--dark);
+                position: relative;
+            }
+
+                .nav-links a:hover {
+                    color: var(--primary);
+                }
+
+        /* --- CHỈNH SỬA NÚT GIỎ HÀNG --- */
+        /* --- NÚT GIỎ HÀNG LUXURY --- */
+        .cart-btn {
+            position: relative; /* Làm mốc tọa độ cho số lượng */
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--dark); /* Màu đen của icon */
+            font-size: 24px; /* Kích thước icon to rõ */
+            text-decoration: none;
+            transition: transform 0.3s ease, color 0.3s ease;
+            margin-left: 15px; /* Cách xa các nút bên cạnh một chút */
+        }
+
+            /* Hiệu ứng khi rê chuột: To lên và đổi màu vàng */
+            .cart-btn:hover {
+                transform: scale(1.1);
+                color: var(--primary);
+            }
+
+        .cart-badge {
+            position: absolute; /* Để bay tự do đè lên icon */
+            top: -5px; /* Đẩy lên trên mép icon */
+            right: 1px; /* Đẩy sang phải mép icon */
+
+            background-color: var(--primary); /* Nền màu Vàng kim */
+            color: #ffffff; /* Số màu trắng */
+
+            font-size: 10px; /* Cỡ chữ số bé xinh */
+            font-weight: 700; /* Chữ đậm cho dễ đọc */
+            font-family: Arial, sans-serif; /* Font số đơn giản dễ nhìn */
+
+            height: 18px; /* Chiều cao tròn */
+            width: 18px; /* Chiều rộng tròn */
+            border-radius: 50%; /* Bo tròn tuyệt đối */
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* 🔥 MẸO ĐỂ ĐẸP HƠN: Thêm viền trắng để tách biệt với icon */
+            border: 2px solid #ffffff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Đổ bóng nhẹ */
+        }
+
+        /* --- CONTENT --- */
+        .container {
+            padding: 40px 20px;
+            flex: 1;
+            max-width: 100%;
+            margin: 0;
+            width: 100%;
+        }
+
+        .section-title {
+            font-family: var(--font-heading);
+            font-size: 32px;
+            margin-bottom: 30px;
+            text-align: center;
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+            .section-title::after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 60px;
+                height: 3px;
+                background: var(--primary);
+            }
+
+        /* 🔥 NÚT QUAY LẠI MUA SẮM (MỚI THÊM) */
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-gray);
+            margin-bottom: 15px;
+            transition: 0.3s;
+        }
+
+            .btn-back:hover {
+                color: var(--primary);
+                transform: translateX(-5px);
+            }
+
+        /* --- TABLE STYLES --- */
+        .table-responsive {
+            overflow-x: auto;
+            background: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border: 1px solid #eee;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: var(--dark);
+            color: var(--white);
+            padding: 18px 20px;
+            text-align: left;
+            font-size: 14px;
+            text-transform: uppercase;
+            font-family: var(--font-heading);
+            letter-spacing: 1px;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+            td.product-col {
+                white-space: normal;
+                min-width: 300px;
+                line-height: 1.6;
+            }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background-color: #fafafa;
+        }
+
+        /* Badge trạng thái */
+        .badge {
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            display: inline-block;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .badge-warning {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .badge-danger {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .badge-info {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        /* Nút thanh toán lại */
+        .btn-repay {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 700;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+        }
+
+            .btn-repay:hover {
+                background: var(--primary-hover);
+                transform: translateY(-2px);
+                box-shadow: 0 4px 10px rgba(209, 176, 107, 0.3);
+            }
+
+        /* FOOTER */
+        footer {
+            background: #0a0a0a;
+            color: #ddd;
+            padding: 60px 5% 20px;
+            text-align: center;
+            margin-top: 60px;
+        }
+
+        .footer-logo {
+            font-family: var(--font-heading);
+            font-size: 24px;
+            color: white;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--primary);
+            display: inline-block;
+            padding-bottom: 10px;
+        }
+
+        .footer-info {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .copyright {
+            font-size: 12px;
+            color: #555;
+            border-top: 1px solid #222;
+            padding-top: 20px;
+        }
+
+        a:hover img[alt="Zalo"] {
+            filter: none !important;
+            transform: scale(1.1);
+        }
+
+        a:hover .fa-facebook {
+            color: #1877F2 !important;
+        }
+        /* --- MOBILE RESPONSIVE (TỐI ƯU LỊCH SỬ ĐƠN HÀNG) --- */
+        @media (max-width: 768px) {
+
+            /* 1. ĐỒNG BỘ HEADER */
+            nav {
+                padding: 15px 4%;
+            }
+
+            .logo-text {
+                font-size: 20px;
+            }
+
+            .nav-links {
+                gap: 15px;
+            }
+
+                .nav-links span {
+                    font-size:12px;
+                }
+
+            .cart-btn {
+                font-size: 22px;
+                margin-left: 5px;
+            }
+
+            /* 2. LAYOUT CHUNG */
+            .container {
+                padding: 20px 4%;
+            }
+
+            .section-title {
+                font-size: 24px;
+                margin-bottom: 20px;
+            }
+
+            .btn-back {
+                font-size: 12px;
+                margin-bottom: 20px;
+            }
+
+            /* 3. BIẾN BẢNG THÀNH DẠNG CARD (QUAN TRỌNG) */
+
+            /* Ẩn tiêu đề bảng (Mã đơn, Ngày đặt...) */
+            table thead {
+                display: none;
+            }
+
+            /* Reset bảng thành khối block */
+            table, tbody, tr, td {
+                display: block;
+                width: 100%;
+            }
+
+            /* Xóa viền của container bảng cũ */
+            .table-responsive {
+                border: none;
+                box-shadow: none;
+                background: transparent;
+                overflow: visible; /* Để shadow của thẻ con hiện rõ */
+            }
+
+            /* Mỗi dòng tr biến thành 1 thẻ Card */
+            tr {
+                background: #fff;
+                margin-bottom: 20px;
+                border-radius: 10px;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+                border: 1px solid #eee;
+                padding: 15px;
+                position: relative;
+            }
+
+            /* Cấu hình hiển thị từng ô dữ liệu (td) */
+            td {
+                padding: 5px 0;
+                border: none;
+                text-align: left;
+                font-size: 14px;
+            }
+
+                /* --- CÁC THÀNH PHẦN TRONG CARD --- */
+
+                /* Mã đơn hàng: Đậm, to, nằm trên cùng */
+                td:nth-child(1) {
+                    font-size: 16px;
+                    border-bottom: 1px solid #f0f0f0;
+                    padding-bottom: 10px;
+                    margin-bottom: 10px;
+                }
+
+                    td:nth-child(1)::before {
+                        content: 'Đơn hàng: ';
+                        font-weight: 400;
+                        color: #666;
+                    }
+
+                /* Ngày đặt */
+                td:nth-child(2) {
+                    font-size: 12px;
+                    color: #888;
+                    position: absolute; /* Đưa lên góc phải trên cùng */
+                    top: 0px;
+                    right: 0px;
+                    padding: 0;
+                }
+
+                /* Chi tiết sản phẩm (Product Col) */
+                td.product-col {
+                    background: #f9f9f9;
+                    padding: 10px;
+                    border-radius: 6px;
+                    margin: 10px 0;
+                }
+
+                /* Tổng tiền: Căn phải, màu nổi */
+                td:nth-child(4) {
+                    display: flex;
+                    justify-content: space-between;
+                    font-weight: 700;
+                    color: var(--primary);
+                    border-top: 1px dashed #eee;
+                    padding-top: 10px;
+                    margin-top: 5px;
+                }
+
+                    td:nth-child(4)::before {
+                        content: 'Tổng tiền:';
+                        color: #333;
+                        font-weight: 600;
+                    }
+
+                /* Trạng thái Thanh toán & Vận chuyển: Gom 2 cái này nằm ngang */
+                td:nth-child(5), td:nth-child(6) {
+                    display: inline-block;
+                    width: auto;
+                    padding-right: 5px;
+                }
+
+                /* Nút thao tác (Thanh toán lại): Full chiều ngang */
+                td:nth-child(7) {
+                    margin-top: 15px;
+                }
+
+            .btn-repay {
+                width: 100%;
+                justify-content: center;
+                padding: 12px;
+            }
+
+            /* 4. FOOTER */
+            footer {
+                padding: 40px 5% 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">
+            <a href="/" class="logo-link"><span class="logo-text">BinStudio</span></a>
+        </div>
+        <div class="nav-links">
+            <% if (user) { %>
+            <span>Xin chào, <b><%= user.fullName || 'User' %></b></span>
+            <a href="/logout" title="Đăng xuất"><i class="fas fa-sign-out-alt"></i></a>
+            <% } else { %>
+            <a href="/login">Đăng nhập</a>
+            <a href="/register" style="border: 1px solid var(--dark); padding: 5px 15px;">Đăng ký</a>
+            <% } %>
+            <a href="/order" title="Lịch sử đơn" style="color: var(--primary);"><i class="fas fa-box"></i></a>
+            <a href="/cart" class="cart-btn">
+                <i class="fas fa-shopping-bag"></i>
+                <span class="cart-badge"><%= typeof cartCount !== 'undefined' ? cartCount : 0 %></span>
+            </a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h2 class="section-title">LỊCH SỬ ĐƠN HÀNG</h2>
+
+        <a href="/" class="btn-back">
+            <i class="fas fa-long-arrow-alt-left"></i> Tiếp tục mua sắm
+        </a>
+
+        <% if (orders && orders.length > 0) { %>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mã đơn</th>
+                        <th>Ngày đặt</th>
+                        <th>Chi tiết sản phẩm</th>
+                        <th>Tổng tiền</th>
+                        <th>Thanh toán</th>
+                        <th>Vận chuyển</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% orders.forEach(order => { %>
+                    <tr>
+                        <td style="font-weight: 700; color: var(--dark);">
+                            #<%= order.orderCode %>
+                        </td>
+                        <td style="color: #666;">
+                            <%= new Date(order.createdAt).toLocaleDateString('vi-VN') %>
+                        </td>
+
+                        <td class="product-col">
+                            <% order.items.forEach(item => { %>
+                            <div style="margin-bottom: 8px; border-bottom: 1px dashed #eee; padding-bottom: 5px;">
+                                <span style="font-weight: 600; color: #333;"><%= item.name %></span>
+                                <br>
+                                <span style="color: #888; font-size: 13px;">SL: <%= item.quantity %> | Size: <b><%= item.size %></b></span>
+                            </div>
+                            <% }) %>
+                        </td>
+
+                        <td style="font-weight: 700; color: var(--primary); font-size: 16px;">
+                            <%= order.totalPrice.toLocaleString() %>đ
+                        </td>
+
+                        <td>
+                            <%
+                            let payClass = 'badge-danger'; let payText = 'Chưa thanh toán';
+                            if(order.paymentStatus === 'Paid') { payClass = 'badge-success'; payText = 'Đã thanh toán'; }
+                            else if(order.paymentStatus === 'Refund') { payClass = 'badge-warning'; payText = 'Đã hoàn tiền'; }
+                            %>
+                            <span class="badge <%= payClass %>"><%= payText %></span>
+                        </td>
+
+                        <td>
+                            <%
+                            let sttClass = 'badge-info'; let sttText = 'Chờ xử lý';
+                            if(order.status === 'delivering') { sttClass = 'badge-info'; sttText = 'Đang giao'; }
+                            else if(order.status === 'delivered') { sttClass = 'badge-success'; sttText = 'Giao thành công'; }
+                            else if(order.status === 'cancelled') { sttClass = 'badge-danger'; sttText = 'Đã hủy'; }
+                            %>
+                            <span class="badge <%= sttClass %>"><%= sttText %></span>
+                        </td>
+
+                        <td>
+                            <% if (order.paymentStatus === 'Unpaid' || order.paymentStatus === 'Failed') { %>
+                            <button class="btn-repay" onclick="repayOrder('<%= order.orderCode %>')">
+                                Thanh toán lại<i class="fas fa-arrow-right"></i>
+                            </button>
+                            <% } else { %>
+                            <span style="color: #ccc; font-size: 20px;">-</span>
+                            <% } %>
+                        </td>
+                    </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+        <% } else { %>
+        <div style="text-align: center; padding: 80px 20px;">
+            <div style="font-size: 60px; color: #ddd; margin-bottom: 20px;"><i class="fas fa-receipt"></i></div>
+            <h3 style="color: #666; margin-bottom: 20px;">Bạn chưa có đơn hàng nào!</h3>
+            <a href="/" style="display: inline-block; padding: 12px 30px; background: var(--dark); color: white; border-radius: 6px; font-weight: 600;">KHÁM PHÁ NGAY</a>
+        </div>
+        <% } %>
+    </div>
+
+    <footer>
+        <div class="footer-logo">BINSTUDIO</div>
+        <div class="footer-info">
+            <span><i class="fas fa-map-marker-alt" style="color: var(--primary); width: 20px;"></i> 202/7 Huỳnh Văn Bánh, P.11, Q.Phú Nhuận, TP.HCM</span>
+            <span><i class="fas fa-phone" style="color: var(--primary); width: 20px;"></i> 037 241 2155</span>
+            <span>
+                <i class="fas fa-envelope" style="color: var(--primary); width: 20px;"></i>
+                manchic2612@gmail.com
+            </span>
+        </div>
+        <div style="margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 15px;">
+            <a href="https://www.facebook.com/manchic2612" target="_blank" style="font-size: 24px; color: #ddd;">
+                <i class="fab fa-facebook"></i>
+            </a>
+            <a href="https://zalo.me/0372412155" target="_blank" style="display: flex; align-items: center;">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg" alt="Zalo" style="width: 24px; height: 24px; filter: grayscale(100%) brightness(200%); transition: 0.3s;">
+            </a>
+        </div>
+
+        <div class="copyright">&copy; 2026 BinStudio. Thiết kế đẳng cấp quý ông.</div>
+    </footer>
+
+    <script>
+        async function repayOrder(orderCode) {
+            if (!confirm("Thanh toán lại đơn hàng #" + orderCode + "?")) return;
+            document.body.style.cursor = 'wait';
+
+            try {
+                const res = await fetch('/repay-order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ orderCode: orderCode })
+                });
+                const data = await res.json();
+                document.body.style.cursor = 'default';
+
+                if (data.success && data.checkoutUrl) {
+                    window.location.href = data.checkoutUrl;
+                } else {
+                    alert(data.message || "Lỗi tạo link thanh toán");
+                }
+            } catch (err) {
+                document.body.style.cursor = 'default';
+                alert("Lỗi kết nối Server");
+                console.error(err);
+            }
+        }
+    </script>
+
+</body>
+</html>

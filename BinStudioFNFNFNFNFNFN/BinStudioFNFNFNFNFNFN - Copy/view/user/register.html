@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BinStudio - Đăng ký tài khoản</title>
+    <link rel="stylesheet" href="/css/BinStudio.css">
+    <style>
+        /* --- COPY CSS TỪ TRANG ĐỔI MẬT KHẨU SANG --- */
+        .input-group-otp {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-get-otp {
+            background-color: #444;
+            color: white;
+            border: none;
+            padding: 0 15px;
+            cursor: pointer;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+
+            .btn-get-otp:hover {
+                background-color: #d1b06b; /* Màu accent của bạn */
+                color: black;
+            }
+    </style>
+</head>
+<body>
+    <nav>
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap" rel="stylesheet">
+        <div class="logo">
+            <a href="/" class="logo-link">
+                <span class="logo-text">BinStudio</span>
+            </a>
+        </div>
+        <div class="nav-links">
+            <% if (user) { %>
+            <span class="user-welcome">
+                Xin chào, <%= user.fullName ? user.fullName : user.email.split('@')[0] %>
+            </span>
+            <a href="/logout" style="color: #ff4d4d;">Đăng xuất</a>
+            <% } else { %>
+            <a href="/login">Đăng nhập</a>
+            <a href="/register">Đăng ký</a>
+            <% } %>
+            <a href="/order">Đơn hàng</a>
+            <a href="/cart" class="cart-btn">
+                <span style="display: inline-block;">🛒</span>
+                <span class="cart-badge"><%= cartCount %></span>
+            </a>
+        </div>
+    </nav>
+
+    <div class="categories">
+        <a href="/Vest">Vest</a>
+        <a href="/Quan">Quần</a>
+        <a href="/Aosomi">Áo sơ mi</a>
+        <a href="/Aodai">Áo dài</a>
+        <a href="/Phukien">Phụ kiện</a>
+    </div>
+
+    <div id="login" class="page">
+        <div class="page-center">
+            <div class="login-box">
+                <h2 class="section-title">Đăng ký</h2>
+
+                <form action="/register" method="POST">
+
+                    <div style="margin-bottom: 15px; text-align: left;">
+                        <label>Email đăng ký</label>
+                        <div class="input-group-otp">
+                            <input type="email" id="email" name="email" required placeholder="Nhập email của bạn"
+                                   style="width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 4px;">
+
+                            <button type="button" class="btn-get-otp" id="btn-otp">Lấy mã OTP</button>
+                        </div>
+                        <small id="otp-msg" style="color: green; display: none; margin-top: 5px;">Đã gửi mã!</small>
+                    </div>
+
+                    <div style="margin-bottom: 15px; text-align: left;">
+                        <label>Mã xác thực (OTP)</label>
+                        <input type="text" name="otp" required placeholder="Nhập mã 6 số vừa nhận"
+                               style="width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+
+                    <div style="margin-bottom: 20px; text-align: left;">
+                        <label>Mật khẩu</label>
+                        <input type="password" name="password" required
+                               style="width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+
+                    <div style="margin-bottom: 20px; text-align: left;">
+                        <label>Xác nhận mật khẩu</label>
+                        <input type="password" name="confirmpassword" required
+                               style="width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+
+                    <button class="btn-add" type="submit">Đăng ký ngay</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div style="font-weight: bold; color: white; letter-spacing: 2px; margin-bottom: 15px;">BINSTUDIO</div>
+        <div class="footer-info">
+            <span>📍 Địa chỉ: 202/2 Huỳnh Văn Bánh, Phường 11, Quận Phú Nhuận, TP. Hồ Chí Minh</span>
+            <span>📞 Điện thoại: 0x.xxx.xxx.xx</span>
+            <span>✉️ Email: contact@binstudio.vn</span>
+        </div>
+        <hr style="border: 0; border-top: 1px solid #333; margin: 20px auto; width: 50px;">
+        <div>&copy; 2026 BinStudio. All rights reserved.</div>
+    </footer>
+
+    <script>
+        const btnOtp = document.getElementById('btn-otp');
+        const emailInput = document.getElementById('email');
+        const msg = document.getElementById('otp-msg');
+
+        btnOtp.addEventListener('click', async () => {
+            const email = emailInput.value;
+
+            if (!email) {
+                alert("Vui lòng nhập email trước!");
+                return;
+            }
+
+            // Hiệu ứng nút đang xử lý
+            const originalText = btnOtp.innerText;
+            btnOtp.innerText = "Đang gửi...";
+            btnOtp.disabled = true;
+
+            try {
+                // Gọi API Backend (Bạn cần đảm bảo backend xử lý việc gửi OTP cho đăng ký)
+                const response = await fetch('/get-otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, type: 'register' }) // Có thể thêm type: 'register' để backend phân biệt
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    msg.style.display = 'block';
+                    msg.innerText = data.message;
+                    msg.style.color = 'green';
+                    alert(data.message);
+                } else {
+                    msg.style.display = 'block';
+                    msg.innerText = data.message;
+                    msg.style.color = 'red';
+                    alert(data.message);
+                    btnOtp.disabled = false;
+                    btnOtp.innerText = originalText;
+                }
+
+                // Đếm ngược 60s
+                if (data.success) {
+                    let countdown = 60;
+                    const interval = setInterval(() => {
+                        btnOtp.innerText = `Gửi lại (${countdown}s)`;
+                        countdown--;
+                        if (countdown < 0) {
+                            clearInterval(interval);
+                            btnOtp.innerText = "Lấy mã OTP";
+                            btnOtp.disabled = false;
+                        }
+                    }, 1000);
+                }
+
+            } catch (error) {
+                console.error(error);
+                alert("Lỗi kết nối server!");
+                btnOtp.disabled = false;
+                btnOtp.innerText = originalText;
+            }
+        });
+    </script>
+</body>
+</html>

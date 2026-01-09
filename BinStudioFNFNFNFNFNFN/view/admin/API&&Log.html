@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BinStudio - Cấu hình API & Log</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #d1b06b; /* Màu vàng đồng thương hiệu */
+            --bg: #f4f7f6;
+            --sidebar-bg: #1a1a1a;
+            --text-muted: #bbb;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        /* Khung Layout chính */
+        .admin-layout {
+            display: flex;
+            min-height: 100vh;
+            background: var(--bg);
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 260px;
+            background: var(--sidebar-bg);
+            color: white;
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+        }
+
+        .sidebar-header {
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+            .sidebar-header h2 {
+                font-family: 'Montserrat', sans-serif;
+                font-weight: 900;
+                font-size: 24px;
+                color: var(--accent) !important;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+            .sidebar-menu li {
+                border-bottom: 1px solid #2a2a2a;
+            }
+
+            .sidebar-menu a {
+                color: var(--text-muted);
+                text-decoration: none;
+                font-size: 14px;
+                display: block;
+                padding: 15px 25px;
+                transition: 0.3s;
+            }
+
+                .sidebar-menu a:hover {
+                    color: white;
+                    background: #2a2a2a;
+                    padding-left: 35px;
+                }
+
+                .sidebar-menu a.active {
+                    color: white;
+                    font-weight: bold;
+                    background: #2a2a2a;
+                    border-left: 4px solid var(--accent);
+                }
+
+        /* NỘI DUNG CHÍNH */
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        /* Section Card */
+        .config-section {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+            .config-section h3 {
+                margin-bottom: 20px;
+                color: #333;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+        .config-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .api-item {
+            border: 1px solid #eee;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+            .api-item h4 {
+                margin-bottom: 15px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+        /* Toggle Switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+
+            .switch input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 20px;
+        }
+
+        input:checked + .slider {
+            background-color: var(--accent);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        input[type="text"], input[type="password"], select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+        }
+
+        /* Log Terminal View */
+        .log-viewer {
+            background: #1a1a1a;
+            color: #2ecc71;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            height: 300px;
+            overflow-y: auto;
+            line-height: 1.6;
+            border: 5px solid #333;
+        }
+
+        .log-error {
+            color: #ff4d4d;
+        }
+
+        .log-warning {
+            color: #f1c40f;
+        }
+
+        .log-payment {
+            color: #d1b06b;
+            font-weight: bold;
+        }
+        /* Thêm style cho Payment */
+
+        .btn-save {
+            margin-top: 20px;
+            padding: 12px 30px;
+            background: var(--sidebar-bg);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+            width: 100%;
+        }
+
+            .btn-save:hover {
+                background: #000;
+                transform: translateY(-2px);
+            }
+    </style>
+</head>
+<body>
+
+    <div class="admin-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>BinStudio</h2>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="/admin">📊 Bảng điều khiển</a></li>
+                <li><a href="/admin/products">📦 Quản lý Sản phẩm</a></li>
+                <li><a href="/admin/users">👥 Quản lý Người dùng</a></li>
+                <li><a href="/admin/orders">🧾 Đơn hàng & Doanh thu</a></li>
+                <li><a href="/admin/config" class="active">⚙️ Cấu hình API và Log</a></li>
+                <li><a href="/admin/homepage" style="color: white; font-weight: bold;">🏠 Chỉnh sửa Trang chủ</a></li>
+
+                <li><a href="/" style="color: var(--accent); margin-top: 20px; border-top: 1px solid #333;">🏠 Quay lại Shop</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <h1 style="margin-bottom: 30px;">Cấu hình Hệ thống & Kết nối API</h1>
+
+            <form action="/admin/config/save" method="POST">
+
+                <div class="config-section">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <h3>💳 Cổng thanh toán trực tuyến</h3>
+                        <small style="color:#888;">Trạng thái đơn hàng sẽ tự động cập nhật khi thanh toán thành công</small>
+                    </div>
+                    <div class="config-group">
+                        <div class="api-item">
+                            <h4>
+                                Ví điện tử Momo
+                                <label class="switch">
+                                    <input type="checkbox" name="momo_on" <%= config.momo.isEnabled ? 'checked' : '' %>>
+                                    <span class="slider"></span>
+                                </label>
+                            </h4>
+                            <input type="text" name="momo_code" placeholder="Partner Code" value="<%= config.momo.partnerCode %>">
+                            <input type="password" name="momo_key" placeholder="Access Key" value="<%= config.momo.accessKey %>">
+                        </div>
+
+                        <div class="api-item">
+                            <h4>
+                                Ngân hàng (VietQR)
+                                <label class="switch">
+                                    <input type="checkbox" name="vqr_on" <%= config.vietqr.isEnabled ? 'checked' : '' %>>
+                                    <span class="slider"></span>
+                                </label>
+                            </h4>
+                            <input type="text" name="vqr_acc" placeholder="Số tài khoản thụ hưởng" value="<%= config.vietqr.bankAccount %>">
+                            <select name="vqr_bank">
+                                <option value="Vietcombank" <%= config.vietqr.bankName === 'Vietcombank' ? 'selected' : '' %>>Vietcombank</option>
+                                <option value="MB Bank" <%= config.vietqr.bankName === 'MB Bank' ? 'selected' : '' %>>MB Bank</option>
+                                <option value="Techcombank" <%= config.vietqr.bankName === 'Techcombank' ? 'selected' : '' %>>Techcombank</option>
+                                <option value="ACB" <%= config.vietqr.bankName === 'ACB' ? 'selected' : '' %>>ACB</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="config-section">
+                    <h3>🚚 Đơn vị vận chuyển liên kết</h3>
+                    <div class="config-group">
+                        <div class="api-item">
+                            <h4>
+                                Giao Hàng Nhanh (GHN)
+                                <label class="switch">
+                                    <input type="checkbox" name="ghn_on" <%= config.ghn.isEnabled ? 'checked' : '' %>>
+                                    <span class="slider"></span>
+                                </label>
+                            </h4>
+                            <input type="text" name="ghn_token" placeholder="API Token kết nối" value="<%= config.ghn.token %>">
+                            <input type="text" name="ghn_id" placeholder="Shop ID" value="<%= config.ghn.shopId %>">
+                        </div>
+
+                        <div class="api-item">
+                            <h4>
+                                GHTK / GrabExpress
+                                <label class="switch"><input type="checkbox" disabled><span class="slider"></span></label>
+                            </h4>
+                            <input type="text" placeholder="Tính năng đang phát triển..." disabled style="background: #eee;">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-save">LƯU CẤU HÌNH HỆ THỐNG</button>
+                </div>
+
+            </form>
+
+            <div class="config-section" id="logs">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3>🛠️ Nhật ký hệ thống (System Logs)</h3>
+                    <div>
+                        <form action="/admin/config/logs/clear" method="POST" style="display: inline;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử không?');">
+                            <button type="submit" style="font-size:12px; padding:5px 12px; color:red; cursor:pointer; background:none; border:1px solid red; border-radius:4px;">Xóa lịch sử</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="log-viewer" id="logContainer">
+                    <% if (logs && logs.length > 0) { %>
+                    <% logs.forEach(log => { %>
+                    <div class="<%= log.type === 'ERROR' ? 'log-error' : (log.type === 'PAYMENT' ? 'log-payment' : '') %>">
+                        [<%= log.createdAt.toLocaleString('vi-VN') %>]
+                        <span style="font-weight:bold;"><%= log.type %>:</span>
+                        <%= log.message %>
+                    </div>
+                    <% }) %>
+                    <% } else { %>
+                    <div style="color: #666; font-style: italic;">Chưa có nhật ký nào được ghi lại.</div>
+                    <% } %>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // Kiểm tra xem Socket.io có được load không (đề phòng chưa cài)
+        if (typeof io !== 'undefined') {
+            const socket = io();
+            const container = document.getElementById('logContainer');
+
+            socket.on('new-log', (log) => {
+                const div = document.createElement('div');
+
+                // Gán class màu sắc dựa trên loại log
+                if (log.type === 'ERROR') div.className = 'log-error';
+                else if (log.type === 'PAYMENT') div.className = 'log-payment';
+
+                // Format thời gian
+                const timeString = new Date(log.createdAt).toLocaleString('vi-VN');
+
+                div.innerHTML = `[${timeString}] <span style="font-weight:bold;">${log.type}:</span> ${log.message}`;
+
+                // Hiệu ứng nháy nhẹ khi có log mới
+                div.style.animation = "highlight 1s";
+
+                container.prepend(div); // Đẩy log mới lên đầu
+            });
+        }
+    </script>
+
+    <style>
+        @keyframes highlight {
+            0% {
+                background-color: #333;
+            }
+
+            100% {
+                background-color: transparent;
+            }
+        }
+    </style>
+</body>
+</html>

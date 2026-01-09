@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title><%= typeof product !== 'undefined' ? 'Sửa sản phẩm' : 'Thêm sản phẩm' %> - BinStudio Admin</title>
+    <link rel="stylesheet" href="/css/admin-style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600&display=swap" rel="stylesheet">
+    <style>
+        .size-group {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background: #f9f9f9;
+            border: 1px dashed #ccc;
+            border-radius: 4px;
+        }
+
+        .size-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .size-label {
+            width: 80px;
+            font-weight: bold;
+        }
+
+        .current-imgs img {
+            width: 60px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 5px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="admin-container">
+
+
+        <main class="main-content">
+            <div class="header-main">
+                <h1 class="page-title"><%= typeof product !== 'undefined' ? 'Cập nhật sản phẩm' : 'Thêm sản phẩm mới' %></h1>
+                <a href="/admin/products" style="text-decoration: none; color: #666;">← Quay lại danh sách</a>
+            </div>
+
+            <div class="table-card" style="max-width: 800px; margin-top: 20px;">
+                <form action="<%= typeof product !== 'undefined'
+    ? '/admin/products/edit-product/' + product._id
+    : '/admin/products/add-product' %>"
+    method="POST"
+    enctype="multipart/form-data">
+
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="font-weight: bold;">Tên sản phẩm:</label>
+                        <input type="text" name="name"
+                               value="<%= typeof product !== 'undefined' ? product.name : '' %>"
+                               placeholder="Nhập tên sản phẩm..." required
+                               style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd;">
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="font-weight: bold;">Giá bán (VNĐ):</label>
+                        <input type="number" name="price"
+                               value="<%= typeof product !== 'undefined' ? product.price : '' %>"
+                               placeholder="Ví dụ: 500000" required
+                               style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd;">
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="font-weight: bold;">Danh mục:</label>
+                        <% if (typeof product !== 'undefined') { %>
+                        <input type="text" value="<%= product.category %>" disabled style="width: 100%; padding: 10px; margin-top: 5px; background: #eee; border: 1px solid #ddd;">
+                        <input type="hidden" name="category" id="categorySelect" value="<%= product.category %>">
+                        <small style="color: #888;">(Không thể đổi danh mục khi sửa)</small>
+                        <% } else { %>
+                        <select name="category" id="categorySelect" required style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd;">
+                            <option value="" disabled selected>-- Chọn danh mục --</option>
+                            <option value="vest">Vest (Chỉ Free Size)</option>
+                            <option value="aosomi">Áo Sơ Mi (S, M, L)</option>
+                            <option value="quan">Quần (S, M, L)</option>
+                            <option value="aodai">Áo Dài (S, M, L)</option>
+                            <option value="phukien">Phụ kiện (N/A)</option>
+                        </select>
+                        <% } %>
+                    </div>
+
+                    <%
+                    const getStock = (s) => {
+                    if (typeof product === 'undefined') return '';
+                    const v = product.variants.find(item => item.size === s);
+                    return v ? v.stock : 0;
+                    }
+                    const currentCat = typeof product !== 'undefined' ? product.category : '';
+                    %>
+
+                    <div id="group-freesize" class="size-group" style="display: <%= currentCat === 'vest' ? 'block' : 'none' %>">
+                        <p style="margin-bottom: 10px; color: #666;">Nhập số lượng cho Vest:</p>
+                        <div class="size-row"><span class="size-label">Free Size:</span><input type="number" name="stock_FreeSize" value="<%= getStock('Free Size') %>" placeholder="Số lượng..." class="stock-input" min="0"></div>
+                    </div>
+
+                    <div id="group-standard" class="size-group" style="display: <%= ['aosomi', 'quan', 'aodai'].includes(currentCat) ? 'block' : 'none' %>">
+                        <p style="margin-bottom: 10px; color: #666;">Nhập số lượng theo từng size:</p>
+                        <div class="size-row"><span class="size-label">Size S:</span><input type="number" name="stock_S" value="<%= getStock('S') %>" placeholder="Số lượng..." class="stock-input" min="0"></div>
+                        <div class="size-row"><span class="size-label">Size M:</span><input type="number" name="stock_M" value="<%= getStock('M') %>" placeholder="Số lượng..." class="stock-input" min="0"></div>
+                        <div class="size-row"><span class="size-label">Size L:</span><input type="number" name="stock_L" value="<%= getStock('L') %>" placeholder="Số lượng..." class="stock-input" min="0"></div>
+                    </div>
+
+                    <div id="group-na" class="size-group" style="display: <%= currentCat === 'phukien' ? 'block' : 'none' %>">
+                        <p style="margin-bottom: 10px; color: #666;">Nhập số lượng phụ kiện:</p>
+                        <div class="size-row"><span class="size-label">Kho:</span><input type="number" name="stock_NA" value="<%= getStock('N/A') %>" placeholder="Số lượng..." class="stock-input" min="0"></div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="font-weight: bold;">Mô tả chi tiết:</label>
+                        <textarea name="description" rows="4" style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd;"><%= typeof product !== 'undefined' ? product.description : '' %></textarea>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 30px;">
+                        <label style="font-weight: bold;">Quản lý Ảnh/Video:</label>
+
+                        <% if (typeof product !== 'undefined' && product.image.length > 0) { %>
+                        <div style="margin-bottom: 15px; padding: 15px; background: #fff1f0; border: 1px solid #ffa39e; border-radius: 4px;">
+                            <p style="font-weight: bold; margin-bottom: 10px; color: #cf1322;">Tích chọn vào ảnh bạn muốn XÓA BỎ:</p>
+                            <div style="display: flex; flex-wrap: wrap; gap: 15px;">
+                                <% product.image.forEach((imgUrl, index) => { %>
+                                <div style="text-align: center; border: 1px solid #ddd; padding: 5px; background: #fff;">
+                                    <% if (imgUrl.includes('.mp4') || imgUrl.includes('.mov')) { %>
+                                    <video src="<%= imgUrl %>" style="width: 80px; height: 80px; object-fit: cover;"></video>
+                                    <% } else { %>
+                                    <img src="<%= imgUrl %>" style="width: 80px; height: 80px; object-fit: cover;">
+                                    <% } %>
+
+                                    <div style="margin-top: 5px; font-size: 13px;">
+                                        <label style="color: #cf1322; cursor: pointer; font-weight: bold;">
+                                            <input type="checkbox" name="delete_images[]" value="<%= imgUrl %>"> Xóa
+                                        </label>
+                                    </div>
+                                </div>
+                                <% }) %>
+                            </div>
+                        </div>
+                        <% } %>
+
+                        <div style="border: 2px dashed #ddd; padding: 20px; text-align: center; background: #fafafa; margin-top: 5px;">
+                            <input type="file" name="image" accept="image/*,video/*" multiple <%= typeof product === 'undefined' ? 'required' : '' %>>
+                            <p style="font-size: 12px; color: #888; margin-top: 5px;">
+                                <%= typeof product !== 'undefined' ? 'Chọn thêm ảnh mới (Nếu có).' : 'Hỗ trợ JPG, PNG, MP4 (Tự động lưu Cloudinary)' %>
+                            </p>
+                        </div>
+                        <% if (typeof product !== 'undefined') { %>
+                        <p style="font-size: 12px; color: #d32f2f; margin-top: 5px; font-weight: bold;">* Lưu ý: Phải giữ lại ít nhất 1 ảnh/video cho sản phẩm.</p>
+                        <% } %>
+                    </div>
+                    <button type="submit" class="btn-add" style="width: 100%; padding: 15px; background: <%= typeof product !== 'undefined' ? '#27ae60' : '#d1b06b' %>; color: white; border: none; font-weight: bold; cursor: pointer;">
+                        <%= typeof product !== 'undefined' ? 'LƯU THAY ĐỔI' : 'ĐĂNG SẢN PHẨM' %>
+                    </button>
+                </form>
+            </div>
+        </main>
+    </div>
+    <script>
+                // Chỉ chạy script ẩn/hiện nếu KHÔNG phải trang sửa (vì trang sửa đã set cứng display rồi)
+                <% if (typeof product === 'undefined') { %>
+                    const categorySelect = document.getElementById('categorySelect');
+                const groupFreesize = document.getElementById('group-freesize');
+                const groupStandard = document.getElementById('group-standard');
+                const groupNA = document.getElementById('group-na');
+                const allStockInputs = document.querySelectorAll('.stock-input');
+
+                categorySelect.addEventListener('change', function () {
+                    groupFreesize.style.display = 'none';
+                    groupStandard.style.display = 'none';
+                    groupNA.style.display = 'none';
+                    allStockInputs.forEach(input => input.value = '');
+
+                    const val = this.value;
+                    if (val === 'vest') groupFreesize.style.display = 'block';
+                    else if (['aosomi', 'quan', 'aodai'].includes(val)) groupStandard.style.display = 'block';
+                    else if (val === 'phukien') groupNA.style.display = 'block';
+                });
+                <% } %>
+    </script>
+</body>
+</html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BinStudio - Vest nam cao cấp</title>
+    <link rel="stylesheet" href="/css/BinStudio.css">
+</head>
+<body>
+
+    <div class="main-wrapper">
+        <nav>
+            <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap" rel="stylesheet">
+            <div class="logo">
+                <a href="/" class="logo-link">
+                    <span class="logo-text">BinStudio</span>
+                </a>
+            </div>
+            <div class="nav-links">
+                <% if (user) { %>
+                <span class="user-welcome">
+                    Xin chào, <%= user.fullName ? user.fullName : user.email.split('@')[0] %>
+                </span>
+                <a href="/logout" style="color: #ff4d4d;">Đăng xuất</a>
+                <% } else { %>
+                <a href="/login">Đăng nhập</a>
+                <a href="/register">Đăng ký</a>
+                <% } %>
+                <a href="/order">Đơn hàng</a>
+                <a href="/cart" class="cart-btn">
+                    <span style="display: inline-block;">🛒</span>
+                    <span class="cart-badge"><%= cartCount %></span>
+                </a>
+            </div>
+        </nav>
+
+        <div class="categories">
+            <a href="/Vest">Vest</a>
+            <a href="/Quan">Quần</a>
+            <a href="/Aosomi">Áo sơ mi</a>
+            <a href="/Aodai">Áo dài</a>
+            <a href="/Phukien">Phụ kiện</a>
+        </div>
+
+        <div class="container" style="min-height: 60vh;">
+            <h2 class="section-title">Lịch sử đơn hàng</h2>
+
+            <% if (orders && orders.length > 0) { %>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #333; text-align: left;">
+                            <th style="padding: 15px;">Mã đơn</th>
+                            <th>Ngày đặt</th>
+                            <th>Sản phẩm</th>
+                            <th>Tổng tiền</th>
+                            <th style="text-align: center;">Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% orders.forEach(order => { %>
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 15px; font-weight: bold;">
+                                #<%= order._id.toString().slice(-6).toUpperCase() %>
+                            </td>
+                            <td>
+                                <%= new Date(order.createdAt).toLocaleDateString('vi-VN') %>
+                            </td>
+                            <td style="padding: 10px 0;">
+                                <% order.items.forEach(item => { %>
+                                <div style="margin-bottom: 5px; font-size: 14px;">
+                                    <b><%= item.name %></b> (x<%= item.quantity %>)
+                                    <br>
+                                    <small style="color: #888;">Size: <%= item.size %></small>
+                                </div>
+                                <% }) %>
+                            </td>
+                            <td style="font-weight: bold; color: var(--primary);">
+                                <%= order.totalPrice.toLocaleString() %>đ
+                            </td>
+                            <td style="text-align: center;">
+                                <%
+                                let statusColor = '#999';
+                                let statusText = 'Không xác định'; // Biến lưu chữ hiển thị
+
+                                if(order.status === 'pending') {
+                                statusColor = '#ff9800';
+                                statusText = 'Chờ xử lý';
+                                }
+                                if(order.status === 'delivering') {
+                                statusColor = '#2196f3';
+                                statusText = 'Đang giao hàng';
+                                }
+                                if(order.status === 'delivered') {
+                                statusColor = '#4caf50';
+                                statusText = 'Đã hoàn thành';
+                                }
+                                if(order.status === 'cancelled') {
+                                statusColor = '#f44336';
+                                statusText = 'Đã hủy đơn';
+                                }
+                                %>
+                                <span style="background: <%= statusColor %>20; color: <%= statusColor %>; padding: 5px 10px; border-radius: 4px; font-size: 12px; font-weight: bold;">
+                                    <%= statusText %>
+                                </span>
+                            </td>
+            
+                        </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+            <% } else { %>
+            <div style="text-align: center; padding: 50px; color: #666;">
+                <h3>Bạn chưa có đơn hàng nào!</h3>
+                <a href="/" style="color: var(--primary);">Quay lại mua sắm</a>
+            </div>
+            <% } %>
+        </div>
+    </div>
+
+<footer>
+    <div style="font-weight: bold; color: white; letter-spacing: 2px; margin-bottom: 15px;">BINSTUDIO</div>
+    <div class="footer-info">
+        <span>📍 Địa chỉ: 202/2 Huỳnh Văn Bánh, Phường 11, Quận Phú Nhuận, TP. Hồ Chí Minh</span>
+        <span>📞 Điện thoại: 0x.xxx.xxx.xx</span>
+        <span>✉️ Email: contact@binstudio.vn</span>
+    </div>
+    <hr style="border: 0; border-top: 1px solid #333; margin: 20px auto; width: 50px;">
+    <div>&copy; 2026 BinStudio. All rights reserved.</div>
+</footer>
+
+</body>
+</html>

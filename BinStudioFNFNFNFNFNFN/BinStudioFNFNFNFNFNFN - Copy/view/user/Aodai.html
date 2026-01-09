@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BinStudio - Vest nam cao cấp</title>
+    <link rel="stylesheet" href="/css/BinStudio.css">
+</head>
+<body>
+    <div class="main-wrapper">
+        <nav>
+            <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap" rel="stylesheet">
+            <div class="logo">
+                <a href="/" class="logo-link">
+                    <span class="logo-text">BinStudio</span>
+                </a>
+            </div>
+            <div class="nav-links">
+                <a href="Aodai.html">Aodai.html</a>
+                <% if (user) { %>
+                <span class="user-welcome">
+                    Xin chào, <%= user.fullName ? user.fullName : user.email.split('@')[0] %>
+                </span>
+                <a href="/logout" style="color: #ff4d4d;">Đăng xuất</a>
+                <% } else { %>
+                <a href="/login">Đăng nhập</a>
+                <a href="/register">Đăng ký</a>
+                <% } %>
+                <a href="/order">Đơn hàng</a>
+                <a href="/cart" class="cart-btn">
+                    <span style="display: inline-block;">🛒</span>
+                    <span class="cart-badge"><%= cartCount %></span>
+                </a>
+            </div>
+        </nav>
+
+        <div class="categories">
+            <a href="/Vest">Vest</a>
+            <a href="/Quan">Quần</a>
+            <a href="/Aosomi">Áo sơ mi</a>
+            <a href="/Aodai">Áo dài</a>
+            <a href="/Phukien">Phụ kiện</a>
+        </div>
+
+        <div class="container">
+            <div class="product-grid">
+                <% products.forEach(function(product) { %>
+                <div class="product-card">
+
+                    <div class="product-img-wrapper">
+                        <a href="/product/<%= product._id %>">
+                            <img src="<%= Array.isArray(product.image) ? product.image[0] : product.image %>" alt="<%= product.name %>">
+                        </a>
+                    </div>
+
+                    <div class="product-info">
+                        <a href="/product/<%= product._id %>" class="product-title-link">
+                            <h3><%= product.name %></h3>
+                        </a>
+                        <p class="product-price"><%= product.price.toLocaleString() %>đ</p>
+
+                        <a href="/product/<%= product._id %>" class="btn-xct">Xem chi tiết</a>
+                    </div>
+
+                </div>
+                <% }); %>
+            </div>
+        </div>
+        <footer>
+            <div style="font-weight: bold; color: white; letter-spacing: 2px; margin-bottom: 15px;">BINSTUDIO</div>
+            <div class="footer-info">
+                <span>📍 Địa chỉ: 202/2 Huỳnh Văn Bánh, Phường 11, Quận Phú Nhuận, TP. Hồ Chí Minh</span>
+                <span>📞 Điện thoại: 0x.xxx.xxx.xx</span>
+                <span>✉️ Email: contact@binstudio.vn</span>
+            </div>
+            <hr style="border: 0; border-top: 1px solid #333; margin: 20px auto; width: 50px;">
+            <div>&copy; 2026 BinStudio. All rights reserved.</div>
+        </footer>
+
+</body>
+</html>

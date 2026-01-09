@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>BinStudio - Quản lý Đơn hàng & Doanh thu</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --accent: #d1b06b;
+            --bg: #f4f7f6;
+            --sidebar-bg: #222;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .admin-layout {
+            display: flex;
+            min-height: 100vh;
+            background: var(--bg);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: var(--sidebar-bg);
+            color: white;
+            padding: 25px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+        }
+
+            .sidebar h2 {
+                font-family: 'Montserrat';
+                font-size: 22px;
+                color: var(--accent);
+                margin-bottom: 35px;
+                text-align: center;
+            }
+
+        .sidebar-menu {
+            list-style: none;
+        }
+
+            .sidebar-menu li {
+                padding: 15px 0;
+                border-bottom: 1px solid #333;
+            }
+
+            .sidebar-menu a {
+                color: #bbb;
+                text-decoration: none;
+                font-size: 14px;
+                display: block;
+            }
+
+                .sidebar-menu a.active {
+                    color: white;
+                    font-weight: bold;
+                }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 40px;
+        }
+
+        /* Dashboard Cards */
+        .revenue-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border-top: 4px solid var(--accent);
+        }
+
+            .stat-card h4 {
+                color: #888;
+                font-size: 12px;
+                text-transform: uppercase;
+                margin-bottom: 10px;
+            }
+
+            .stat-card .value {
+                font-size: 22px;
+                font-weight: bold;
+                color: #222;
+            }
+
+        /* Table & Card */
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+        .order-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+            .order-table th {
+                background: #f8f9fa;
+                padding: 15px;
+                text-align: left;
+                font-size: 13px;
+                color: #666;
+                white-space: nowrap;
+            }
+
+            .order-table td {
+                padding: 15px;
+                border-bottom: 1px solid #eee;
+                font-size: 14px;
+                vertical-align: middle;
+            }
+
+        /* Status Badges */
+        .badge {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .shipping, .delivering {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .completed, .delivered {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .cancelled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Filter Form */
+        .filter-form {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            margin-bottom: 20px;
+        }
+
+        .filter-input {
+            padding: 10px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            height: 40px;
+        }
+
+        .btn-filter {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 0 20px;
+            height: 40px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-reset {
+            background: white;
+            color: #666;
+            border: 1px solid #ddd;
+            padding: 0 15px;
+            height: 40px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-layout">
+        <aside class="sidebar">
+            <h2>BinStudio Admin</h2>
+            <ul class="sidebar-menu">
+                <li><a href="/admin">📊 Bảng điều khiển</a></li>
+                <li><a href="/admin/products">📦 Quản lý Sản phẩm</a></li>
+                <li><a href="/admin/users">👥 Quản lý Người dùng</a></li>
+                <li><a href="/admin/orders" class="active" style="color: white;">🧾 Đơn hàng & Doanh thu</a></li>
+                <li><a href="/admin/config">⚙️ Cấu hình API và Log</a></li>
+                <li><a href="/admin/homepage" style="color: white; font-weight: bold;">🏠 Chỉnh sửa Trang chủ</a></li>
+
+                <li><a href="/" style="color: var(--accent); margin-top: 20px;">🏠 Quay lại Shop</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <h1 style="margin-bottom: 30px;">Báo cáo doanh thu & Đơn hàng</h1>
+
+            <div class="revenue-grid">
+                <div class="stat-card">
+                    <h4>Doanh thu hôm nay</h4>
+                    <div class="value"><%= stats.dailyRevenue.toLocaleString('vi-VN') %>đ</div>
+                </div>
+                <div class="stat-card">
+                    <h4>Doanh thu tháng này</h4>
+                    <div class="value"><%= stats.monthlyRevenue.toLocaleString('vi-VN') %>đ</div>
+                </div>
+                <div class="stat-card">
+                    <h4>Đơn hàng chờ xử lý</h4>
+                    <div class="value" style="color: #d1b06b;"><%= stats.pendingCount %></div>
+                </div>
+                <div class="stat-card">
+                    <h4>Tổng đơn hoàn thành</h4>
+                    <div class="value" style="color: #28a745;"><%= stats.completedCount %></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Biểu đồ tăng trưởng doanh thu (Tháng này)</h3>
+                <canvas id="revenueChart" style="max-height: 300px;"></canvas>
+            </div>
+
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3>Danh sách đơn hàng (<%= orders.length %> đơn)</h3>
+                </div>
+
+                <form action="/admin/orders" method="GET" class="filter-form">
+                    <div style="flex: 2; min-width: 250px;">
+                        <input type="text" name="keyword" class="filter-input" style="width: 100%;"
+                               placeholder="🔍 Nhập Mã đơn, Tên khách, SĐT hoặc Email..."
+                               value="<%= typeof queryData !== 'undefined' ? queryData.keyword : '' %>">
+                    </div>
+                    <div style="flex: 1;">
+                        <input type="date" name="date" class="filter-input" style="width: 100%;"
+                               value="<%= typeof queryData !== 'undefined' ? queryData.date : '' %>">
+                    </div>
+                    <div style="flex: 1;">
+                        <select name="status" class="filter-input" style="width: 100%;">
+                            <option value="">-- Tất cả trạng thái --</option>
+
+                            <option value="pending" <%= (typeof queryData !== 'undefined' && queryData.status === 'pending') ? 'selected' : '' %>>⏳ Chờ xác nhận</option>
+                            <option value="delivering" <%= (typeof queryData !== 'undefined' && queryData.status === 'delivering') ? 'selected' : '' %>>🚚 Đang giao hàng</option>
+                            <option value="delivered" <%= (typeof queryData !== 'undefined' && queryData.status === 'delivered') ? 'selected' : '' %>>✅ Hoàn thành</option>
+                            <option value="cancelled" <%= (typeof queryData !== 'undefined' && queryData.status === 'cancelled') ? 'selected' : '' %>>❌ Đã hủy</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-filter">Lọc</button>
+                    <% if (typeof queryData !== 'undefined' && (queryData.keyword || queryData.date || queryData.status)) { %>
+                    <a href="/admin/orders" class="btn-reset">Xóa lọc</a>
+                    <% } %>
+                </form>
+
+                <table class="order-table">
+                    <thead>
+                        <tr>
+                            <th>Mã đơn</th>
+                            <th>Khách hàng</th>
+                            <th>Ngày đặt</th>
+                            <th>Tổng tiền</th>
+                            <th>Thanh toán</th>
+                            <th>Trạng thái Đơn</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (orders.length > 0) { %>
+                        <% orders.forEach(order => { %>
+                        <tr>
+                            <td style="color: #333;">
+                                <b>#<%= order.orderCode ? order.orderCode : order._id.toString().slice(-6).toUpperCase() %></b>
+                            </td>
+
+                            <td>
+                                <b><%= order.userInfo.fullName %></b><br>
+                                <small style="color: #666;">📞 <%= order.userInfo.phone %></small><br>
+                                <small style="color: #888; font-size: 11px;">✉️ <%= order.userInfo.email || 'Không có email' %></small>
+                            </td>
+
+                            <td><%= new Date(order.createdAt).toLocaleDateString('vi-VN') %></td>
+
+                            <td style="font-weight: bold; color: var(--accent);">
+                                <%= order.totalPrice.toLocaleString('vi-VN') %>đ
+                            </td>
+
+                            <td>
+                                <form action="/admin/orders/update-payment/<%= order._id %>" method="POST">
+                                    <%
+                                    let payStyle = 'color: #721c24; background: #f8d7da;'; // Default: Unpaid (Đỏ)
+                                    if (order.paymentStatus === 'Paid') {
+                                    payStyle = 'color: #155724; background: #d4edda;'; // Paid (Xanh)
+                                    } else if (order.paymentStatus === 'Refund') {
+                                    payStyle = 'color: #e65100; background: #fff3e0;'; // Refund (Cam)
+                                    }
+                                    %>
+                                    <select name="paymentStatus"
+                                            style="border: none; padding: 5px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; outline: none; <%= payStyle %>"
+                                            onchange="
+                                                const val = this.value;
+                                                if(val === 'Refund') {
+                                                    if(confirm('⚠️ XÁC NHẬN HOÀN TIỀN:\n\nBạn xác nhận đã hoàn lại tiền cho khách?\nHệ thống sẽ cập nhật trạng thái đơn hàng.')) {
+                                                        this.form.submit();
+                                                    } else { location.reload(); }
+                                                } else if (val === 'Paid') {
+                                                     if(confirm('Xác nhận đơn hàng này ĐÃ THANH TOÁN?')) {
+                                                        this.form.submit();
+                                                    } else { location.reload(); }
+                                                } else {
+                                                    this.form.submit();
+                                                }
+                                            ">
+                                        <option value="Unpaid" <%= (!order.paymentStatus || order.paymentStatus === 'Unpaid' || order.paymentStatus === 'Failed') ? 'selected' : '' %>>Chưa thanh toán</option>
+                                        <option value="Paid" <%= order.paymentStatus === 'Paid' ? 'selected' : '' %>>Đã thanh toán</option>
+                                        <option value="Refund" <%= order.paymentStatus === 'Refund' ? 'selected' : '' %>>Đã hoàn tiền</option>
+                                    </select>
+                                </form>
+                            </td>
+
+                            <td>
+                                <span class="badge <%= order.status %>">
+                                    <%= order.status === 'pending' ? 'Chờ vận chuyển' :
+                                    order.status === 'delivering' ? 'Đang giao hàng' :
+                                    order.status === 'delivered' ? 'Hoàn thành' :
+                                    order.status === 'cancelled' ? 'Đã hủy' : 'Không xác định' %>
+                                </span>
+                            </td>
+
+                            <td>
+                                <form action="/admin/orders/update-status/<%= order._id %>" method="POST">
+                                    <select name="status"
+                                            onchange="if(this.value === 'cancelled') {
+                                                if(confirm('⚠️ CẢNH BÁO: HỦY ĐƠN HÀNG.\n\n- Thao tác này sẽ hoàn trả kho.\n- Không thể hoàn tác.\n\nBạn chắc chắn chứ?')) {
+                                                    this.form.submit();
+                                                } else { this.value = ''; }
+                                            } else { this.form.submit(); }"
+                                            style="font-size: 12px; padding: 5px; border-radius: 4px; border: 1px solid #ddd; cursor: pointer;">
+
+                                        <option value="" disabled selected>Cập nhật</option>
+                                        <option value="pending" <%= order.status === 'pending' ? 'hidden' : '' %>>Chờ vận chuyển</option>
+                                        <option value="delivering" <%= order.status === 'delivering' ? 'hidden' : '' %>>Đang giao hàng</option>
+                                        <option value="delivered" <%= order.status === 'delivered' ? 'hidden' : '' %>>Hoàn thành</option>
+                                        <option value="cancelled" <%= order.status === 'cancelled' ? 'hidden' : '' %> style="color: red; font-weight: bold;">Hủy đơn</option>
+                                    </select>
+                                </form>
+                            </td>
+                        </tr>
+                        <% }) %>
+                        <% } else { %>
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 40px; color: #888;">
+                                <div style="font-size: 40px; margin-bottom: 10px;">🔍</div>
+                                <p>Không tìm thấy đơn hàng nào phù hợp.</p>
+                                <a href="/admin/orders" style="color: var(--accent); font-weight: bold; text-decoration: none;">Xem tất cả</a>
+                            </td>
+                        </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const rawData = <%- chartData %>;
+        const rawLabels = <%- chartLabels %>;
+
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: rawLabels,
+                datasets: [{
+                    label: 'Doanh thu (VNĐ)',
+                    data: rawData,
+                    borderColor: '#d1b06b',
+                    backgroundColor: 'rgba(209, 176, 107, 0.1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#d1b06b',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                return 'Doanh thu: ' + context.raw.toLocaleString('vi-VN') + 'đ';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function (value) {
+                                if (value >= 1000000) return (value / 1000000).toFixed(1) + 'M';
+                                if (value >= 1000) return (value / 1000).toFixed(0) + 'k';
+                                return value;
+                            }
+                        }
+                    },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

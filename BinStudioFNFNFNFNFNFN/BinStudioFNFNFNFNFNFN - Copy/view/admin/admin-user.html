@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BinStudio - Quản lý người dùng</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --accent: #d1b06b; --bg: #f4f7f6; --sidebar-bg: #222; --danger: #dc3545; --success: #28a745; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+
+        .admin-layout { display: flex; min-height: 100vh; background: var(--bg); }
+        
+        /* Sidebar dính cố định */
+        .sidebar { width: 260px; background: var(--sidebar-bg); color: white; padding: 25px; flex-shrink: 0; position: sticky; top: 0; height: 100vh; }
+        .sidebar h2 { font-family: 'Montserrat'; font-size: 22px; color: var(--accent); margin-bottom: 35px; text-align: center; }
+        .sidebar-menu { list-style: none; }
+        .sidebar-menu li { padding: 15px 0; border-bottom: 1px solid #333; }
+        .sidebar-menu a { color: #bbb; text-decoration: none; font-size: 14px; display: block; transition: 0.3s; }
+        .sidebar-menu a:hover { color: white; transform: translateX(5px); }
+        .sidebar-menu a.active { color: white; font-weight: bold; }
+
+        /* Nội dung chính */
+        .main-content { flex: 1; padding: 40px; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+
+        /* Table Styling */
+        .user-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .user-table th { background: #f8f9fa; padding: 15px; text-align: left; font-size: 13px; color: #666; text-transform: uppercase; }
+        .user-table td { padding: 15px; border-bottom: 1px solid #eee; vertical-align: middle; font-size: 14px; }
+        
+        /* Trạng thái */
+        .badge { padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; }
+        .badge-active { background: #e8f5e9; color: #2e7d32; }
+        .badge-blocked { background: #ffebee; color: #c62828; }
+
+        /* Nút thao tác */
+        .btn-status { border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; transition: 0.3s; }
+        .btn-lock { background: #fff0f0; color: var(--danger); border: 1px solid #ffcccc; }
+        .btn-lock:hover { background: var(--danger); color: white; }
+        .btn-unlock { background: #f0fff0; color: var(--success); border: 1px solid #ccffcc; }
+        .btn-unlock:hover { background: var(--success); color: white; }
+        
+        /* Tìm kiếm */
+        .search-box { padding: 10px 15px; border: 1px solid #ddd; border-radius: 8px; width: 300px; margin-bottom: 20px; outline: none; }
+    </style>
+</head>
+<body>
+
+<div class="admin-layout">
+    <aside class="sidebar">
+        <h2>BinStudio Admin</h2>
+        <ul class="sidebar-menu">
+            <li><a href="/admin">📊 Bảng điều khiển</a></li>
+
+            <li><a href="/admin/products">📦 Quản lý Sản phẩm</a></li>
+
+            <li><a href="/admin/users">👥 Quản lý Người dùng</a></li>
+            <li><a href="/admin/orders">🧾 Đơn hàng & Doanh thu</a></li>
+            <li><a href="/admin/config">⚙️ Cấu hình API và Log</a></li>
+            <li><a href="/" style="color: var(--accent); margin-top: 20px;">🏠 Quay lại Shop</a></li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <h1 style="margin-bottom: 30px;">Quản lý tài khoản khách hàng</h1>
+
+        <div class="card">
+            <input type="text" id="userSearch" class="search-box" placeholder="🔍 Tìm tên hoặc email...">            
+            <table class="user-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Họ tên</th>
+                        <th>Email</th>
+                        <th>Ngày tham gia</th>
+                        <th>Trạng thái</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="userTableBody">
+                    <% users.forEach(u => { %>
+                    <tr class="user-row">
+                        <td>#<%= u._id.toString().slice(-4).toUpperCase() %></td>
+                        <td class="user-name"><b><%= u.fullName || 'Chưa cập nhật' %></b></td>
+                        <td class="user-email"><%= u.email %></td>
+                        <td><%= u.createdAt ? u.createdAt.toLocaleDateString('vi-VN') : 'N/A' %></td>
+                        <td>
+                            <span class="badge <%= u.isLocked ? 'badge-blocked' : 'badge-active' %>">
+                                <%= u.isLocked ? 'Đã khóa' : 'Hoạt động' %>
+                            </span>
+                        </td>
+                        <td>
+                            <form action="/admin/users/toggle-lock/<%= u._id %>" method="POST" style="display:inline;">
+                                <% if (u.isLocked) { %>
+                                <button type="submit" class="btn-status btn-unlock">Mở khóa</button>
+                                <% } else { %>
+                                <button type="submit" class="btn-status btn-lock"
+                                        onclick="return confirm('Bạn có chắc chắn muốn khóa tài khoản <%= u.email %>?')">
+                                    Khóa TK
+                                </button>
+                                <% } %>
+                            </form>
+                        </td>
+                    </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+<script>
+    document.getElementById('userSearch').addEventListener('keyup', function () {
+        const value = this.value.toLowerCase().trim();
+        const rows = document.querySelectorAll('.user-row');
+
+        rows.forEach(row => {
+            const name = row.querySelector('.user-name').textContent.toLowerCase();
+            const email = row.querySelector('.user-email').textContent.toLowerCase();
+
+            // Nếu tên hoặc email chứa từ khóa thì hiện, không thì ẩn
+            if (name.includes(value) || email.includes(value)) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    });
+</script>
+</body>
+</html>

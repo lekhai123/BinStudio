@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BinStudio - Chỉnh sửa trang chủ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;900&display=swap" rel="stylesheet">
+    <style>
+        /* Tận dụng lại CSS Admin cũ */
+        :root {
+            --accent: #d1b06b;
+            --bg: #f4f7f6;
+            --sidebar-bg: #222;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .admin-layout {
+            display: flex;
+            min-height: 100vh;
+            background: var(--bg);
+        }
+
+        .sidebar {
+            width: 260px;
+            background: var(--sidebar-bg);
+            color: white;
+            padding: 25px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+        }
+
+            .sidebar h2 {
+                font-family: 'Montserrat';
+                font-size: 22px;
+                color: var(--accent);
+                margin-bottom: 35px;
+                text-align: center;
+            }
+
+        .sidebar-menu {
+            list-style: none;
+        }
+
+            .sidebar-menu li {
+                padding: 15px 0;
+                border-bottom: 1px solid #333;
+            }
+
+            .sidebar-menu a {
+                color: #bbb;
+                text-decoration: none;
+                font-size: 14px;
+                display: block;
+            }
+
+                .sidebar-menu a:hover {
+                    color: white;
+                }
+
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        /* CSS CHO FORM */
+        .section-card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            color: var(--accent);
+            font-weight: bold;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+            .form-group label {
+                display: block;
+                font-weight: 600;
+                margin-bottom: 5px;
+                font-size: 14px;
+                color: #333;
+            }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+            .form-control:focus {
+                border-color: var(--accent);
+                outline: none;
+            }
+
+        /* Custom style cho input file */
+        input[type="file"] {
+            padding: 8px;
+            background: #f9f9f9;
+        }
+
+        .row {
+            display: flex;
+            gap: 20px;
+        }
+
+        .col {
+            flex: 1;
+        }
+
+        .btn-save {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+            display: block;
+            width: 100%;
+            transition: 0.3s;
+        }
+
+            .btn-save:hover {
+                background: #b5904b;
+            }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .current-img-preview {
+            margin-bottom: 10px;
+            padding: 5px;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            display: inline-block;
+            background: #fff;
+        }
+
+            .current-img-preview img {
+                max-width: 100%;
+                height: auto;
+                display: block;
+                border-radius: 4px;
+            }
+    </style>
+</head>
+<body>
+    <div class="admin-layout">
+        <aside class="sidebar">
+            <h2>BinStudio Admin</h2>
+            <ul class="sidebar-menu">
+                <li><a href="/admin">📊 Bảng điều khiển</a></li>
+                <li><a href="/admin/products">📦 Quản lý Sản phẩm</a></li>
+                <li><a href="/admin/users">👥 Quản lý Người dùng</a></li>
+                <li><a href="/admin/orders">🧾 Đơn hàng & Doanh thu</a></li>
+                <li><a href="/admin/config">⚙️ Cấu hình API</a></li>
+                <li><a href="/admin/homepage" style="color: white; font-weight: bold;">🏠 Chỉnh sửa Trang chủ</a></li>
+                <li><a href="/" style="color: var(--accent); margin-top: 20px;">🏠 Quay lại Shop</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <h1 style="margin-bottom: 20px;">Cấu hình nội dung Trang chủ</h1>
+
+            <script>
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('success')) {
+                    document.write('<div class="alert-success">✅ Cập nhật trang chủ thành công!</div>');
+                }
+            </script>
+
+            <form action="/admin/homepage" method="POST" enctype="multipart/form-data">
+
+                <div class="section-card">
+                    <div class="section-title">🖼️ Hero Banner (Đầu trang)</div>
+                    <div class="row">
+                        <div class="col">
+                            <div class="form-group">
+                                <label>Tiêu đề chính (H1)</label>
+                                <input type="text" name="heroTitle" class="form-control" value="<%= content.hero.title %>">
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                <label>Tiêu đề phụ (Subtitle)</label>
+                                <input type="text" name="heroSubtitle" class="form-control" value="<%= content.hero.subtitle %>">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Mô tả ngắn</label>
+                        <textarea name="heroDesc" class="form-control" rows="2"><%= content.hero.description %></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ảnh nền Banner</label>
+
+                        <% if(content.hero.backgroundImage) { %>
+                        <div class="current-img-preview">
+                            <img src="<%= content.hero.backgroundImage %>" style="height: 120px;">
+                            <div style="font-size: 11px; color: #666; margin-top: 4px;">Ảnh hiện tại</div>
+                        </div>
+                        <% } %>
+
+                        <input type="file" name="heroImage" class="form-control" accept="image/*">
+                        <small style="color: #888;">Chọn ảnh mới để thay thế (Để trống nếu muốn giữ ảnh cũ). Khuyên dùng ảnh ngang (1920x800).</small>
+                    </div>
+                </div>
+
+                <div class="section-card">
+                    <div class="section-title">🛠️ Dịch vụ (3 Cột)</div>
+
+                    <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                        <strong style="color: #555;">Dịch vụ số 1</strong>
+                        <div class="row" style="margin-top: 10px;">
+                            <div class="col" style="flex: 0.3;">
+                                <input type="text" name="serviceIcon1" class="form-control" value="<%= content.services[0]?.icon %>" placeholder="Icon (👔)">
+                            </div>
+                            <div class="col">
+                                <input type="text" name="serviceTitle1" class="form-control" value="<%= content.services[0]?.title %>" placeholder="Tiêu đề">
+                            </div>
+                        </div>
+                        <div style="margin-top: 10px;">
+                            <input type="text" name="serviceDesc1" class="form-control" value="<%= content.services[0]?.description %>" placeholder="Mô tả">
+                        </div>
+                    </div>
+
+                    <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                        <strong style="color: #555;">Dịch vụ số 2</strong>
+                        <div class="row" style="margin-top: 10px;">
+                            <div class="col" style="flex: 0.3;">
+                                <input type="text" name="serviceIcon2" class="form-control" value="<%= content.services[1]?.icon %>">
+                            </div>
+                            <div class="col">
+                                <input type="text" name="serviceTitle2" class="form-control" value="<%= content.services[1]?.title %>">
+                            </div>
+                        </div>
+                        <div style="margin-top: 10px;">
+                            <input type="text" name="serviceDesc2" class="form-control" value="<%= content.services[1]?.description %>">
+                        </div>
+                    </div>
+
+                    <div style="background: #f9f9f9; padding: 15px; border-radius: 8px;">
+                        <strong style="color: #555;">Dịch vụ số 3</strong>
+                        <div class="row" style="margin-top: 10px;">
+                            <div class="col" style="flex: 0.3;">
+                                <input type="text" name="serviceIcon3" class="form-control" value="<%= content.services[2]?.icon %>">
+                            </div>
+                            <div class="col">
+                                <input type="text" name="serviceTitle3" class="form-control" value="<%= content.services[2]?.title %>">
+                            </div>
+                        </div>
+                        <div style="margin-top: 10px;">
+                            <input type="text" name="serviceDesc3" class="form-control" value="<%= content.services[2]?.description %>">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-card">
+                    <div class="section-title">🌟 Người nổi tiếng (3 Người)</div>
+
+                    <div style="background: #eef2f7; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                        <div class="form-group">
+                            <label>Tiêu đề mục (Ví dụ: BINSTUDIO & SAO VIỆT)</label>
+                            <input type="text" name="celebTitle" class="form-control" value="<%= content.celebSection?.title || '' %>">
+                        </div>
+                        <div class="form-group">
+                            <label>Mô tả ngắn (Ví dụ: Lựa chọn hàng đầu...)</label>
+                            <input type="text" name="celebDesc" class="form-control" value="<%= content.celebSection?.description || '' %>">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col">
+                            <div class="form-group">
+                                <label>Tên Người 1</label>
+                                <input type="text" name="celebName1" class="form-control"
+                                       value="<%= content.celebSection?.items?.[0]?.name || '' %>">
+                            </div>
+                            <div class="form-group">
+                                <label>Ảnh Người 1</label>
+                                <% if(content.celebSection?.items?.[0]?.image) { %>
+                                <div class="current-img-preview">
+                                    <img src="<%= content.celebSection.items[0].image %>" style="width: 60px; height: 80px; object-fit: cover;">
+                                </div>
+                                <% } %>
+                                <input type="file" name="celebImg1" class="form-control" accept="image/*">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col">
+                            <div class="form-group">
+                                <label>Tên Người 2</label>
+                                <input type="text" name="celebName2" class="form-control"
+                                       value="<%= content.celebSection?.items?.[1]?.name || '' %>">
+                            </div>
+                            <div class="form-group">
+                                <label>Ảnh Người 2</label>
+                                <% if(content.celebSection?.items?.[1]?.image) { %>
+                                <div class="current-img-preview">
+                                    <img src="<%= content.celebSection.items[1].image %>" style="width: 60px; height: 80px; object-fit: cover;">
+                                </div>
+                                <% } %>
+                                <input type="file" name="celebImg2" class="form-control" accept="image/*">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col">
+                            <div class="form-group">
+                                <label>Tên Người 3</label>
+                                <input type="text" name="celebName3" class="form-control"
+                                       value="<%= content.celebSection?.items?.[2]?.name || '' %>">
+                            </div>
+                            <div class="form-group">
+                                <label>Ảnh Người 3</label>
+                                <% if(content.celebSection?.items?.[2]?.image) { %>
+                                <div class="current-img-preview">
+                                    <img src="<%= content.celebSection.items[2].image %>" style="width: 60px; height: 80px; object-fit: cover;">
+                                </div>
+                                <% } %>
+                                <input type="file" name="celebImg3" class="form-control" accept="image/*">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <button type="submit" class="btn-save">LƯU CẤU HÌNH</button>
+            </form>
+        </main>
+    </div>
+</body>
+</html>
