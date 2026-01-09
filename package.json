@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node BinStudioFNFNFNFNFNFN/server.js"
+    "start": "cd BinStudioFNFNFNFNFNFN && node server.js"
   },
   "dependencies": {
     "@payos/node": "^2.0.4",
