@@ -8,7 +8,7 @@ const systemLog = require('./Middleware/log');
 const { injectUserData } = require('./Middleware/userMiddleware');
 const userSharedRoutes = require('./route/userIndexRoute');
 const adminSharedRoutes = require('./route/adminIndexRoute');
-const ghnRouter = require('./Route/ghnRoute');
+const ghnRouter = require('./route/ghnRoute');
 const flash = require('connect-flash');
 const orderController = require('./Controller/userOrderController');
 
