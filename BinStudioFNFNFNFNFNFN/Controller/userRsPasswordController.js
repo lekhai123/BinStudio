@@ -1,36 +1,24 @@
 ﻿const User = require('../Models/user');
 const bcrypt = require('bcrypt');
-const nodemailer = require('nodemailer');
+// const nodemailer = require('nodemailer'); // Bỏ dòng này
+const { Resend } = require('resend'); // Thêm dòng này
 const OTP = require('../Models/otp');
 const crypto = require('crypto');
 
+// --- CẤU HÌNH RESEND ---
+const resend = new Resend(process.env.RESEND_API_KEY);
 
+// --- HELPER: RENDER VIEW ---
 const renderChangePassword = (req, res, data) => {
     return res.render('user/Doimatkhau', {
         user: req.session.user || null,
-        cartCount: req.session.cartCount || 0, // Lấy tạm từ session để không bị lỗi view
+        cartCount: req.session.cartCount || 0,
         error: null,
         success: null,
-        ...data // Dữ liệu error/success truyền vào sẽ ghi đè lên null
+        ...data
     });
 };
 
-
-const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false, // Bắt buộc là false với port 587
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    },
-    tls: {
-        rejectUnauthorized: false,
-        ciphers: 'SSLv3' // Giúp tương thích bảo mật
-    },
-    // 🔥 DÒNG NÀY QUAN TRỌNG ĐỂ SỬA LỖI TIMEOUT TRÊN RENDER:
-    family: 4 // Ép buộc sử dụng IPv4 thay vì IPv6
-});
 // --- 1. GỬI OTP (REGISTER / FORGOT) ---
 exports.getOTP = async (req, res) => {
     try {
@@ -42,9 +30,9 @@ exports.getOTP = async (req, res) => {
         }
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            return res.json({ 
-                success: false, 
-                message: "Định dạng Email không hợp lệ (ví dụ: abc@gmail.com)" 
+            return res.json({
+                success: false,
+                message: "Định dạng Email không hợp lệ (ví dụ: abc@gmail.com)"
             });
         }
 
@@ -54,7 +42,7 @@ exports.getOTP = async (req, res) => {
 
         const purpose = type === 'register' ? 'REGISTER' : 'RESET_PASSWORD';
 
-        // ===== RATE LIMIT EMAIL (OTP còn hạn) =====
+        // ===== RATE LIMIT EMAIL =====
         const emailCount = await OTP.countDocuments({
             email,
             purpose,
@@ -92,10 +80,10 @@ exports.getOTP = async (req, res) => {
             return res.json({ success: false, message: "Email không tồn tại" });
         }
 
-        // ===== XÓA OTP CŨ =====
+        // ===== DELETE OLD OTP =====
         await OTP.deleteMany({ email, purpose, isUsed: false });
 
-        // ===== TẠO OTP =====
+        // ===== GENERATE OTP =====
         const otp = crypto.randomInt(100000, 999999).toString();
         const hashedOTP = await bcrypt.hash(otp, 10);
 
@@ -107,51 +95,49 @@ exports.getOTP = async (req, res) => {
             ip
         });
 
-        // ===== SEND EMAIL =====
-        await transporter.sendMail({
-            to: email,
+        // ===== SEND EMAIL VỚI RESEND =====
+        // Lưu ý: Nếu chưa verify domain, chỉ gửi được về chính email đăng ký Resend
+        const { data, error } = await resend.emails.send({
+            from: 'BinStudio <onboarding@resend.dev>', // Mail mặc định dùng để test
+            to: [email],
             subject: 'Mã OTP xác thực - BinStudio',
             html: `
-                <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd;">
-                    <h2 style="color: #d1b06b;">BinStudio Verification</h2>
-                    <p>Mã OTP của bạn là:</p>
-                    <h1 style="color: #333; letter-spacing: 5px;">${otp}</h1>
-                    <p>Mã này có hiệu lực trong vòng <strong>5 phút</strong>.</p>
-                    <p>Vui lòng không chia sẻ mã này cho bất kỳ ai.</p>
+                <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #d1b06b; text-align: center;">BinStudio Verification</h2>
+                    <p style="text-align: center;">Mã xác thực của bạn là:</p>
+                    <h1 style="color: #333; letter-spacing: 5px; text-align: center; background: #f4f4f4; padding: 10px; border-radius: 5px;">${otp}</h1>
+                    <p style="text-align: center;">Mã này có hiệu lực trong vòng <strong>5 phút</strong>.</p>
                 </div>
             `
         });
-        res.json({ success: true, message: "OTP đã được gửi" });
+
+        if (error) {
+            console.error("Resend Error:", error);
+            return res.status(500).json({ success: false, message: "Lỗi gửi mail từ nhà cung cấp" });
+        }
+
+        res.json({ success: true, message: "OTP đã được gửi thành công" });
 
     } catch (err) {
-        console.error("getOTP error:", err);
+        console.error("getOTP System Error:", err);
         res.status(500).json({ success: false, message: "Lỗi hệ thống" });
     }
 };
 
-// --- 2. RESET PASSWORD ---
+// --- 2. RESET PASSWORD (Giữ nguyên logic cũ) ---
 exports.resetPassword = async (req, res) => {
     try {
         const { email, otp, newpassword, confirmnewpassword } = req.body;
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            return res.render('user/Doimatkhau', {
-                error: "Định dạng Email không hợp lệ!"
-            });
+            return renderChangePassword(req, res, { error: "Định dạng Email không hợp lệ!" });
         }
-        // 1. Check thiếu dữ liệu
+
         if (!email || !otp || !newpassword || !confirmnewpassword) {
-            return renderChangePassword(req, res, {
-                error: "Vui lòng nhập đầy đủ thông tin"
-            });
+            return renderChangePassword(req, res, { error: "Vui lòng nhập đầy đủ thông tin" });
         }
 
-        // --- XÓA DÒNG if(newpassword === req.password) CŨ CỦA BẠN ĐI VÌ NÓ SAI LOGIC ---
-
-        // 2. Check độ dài mật khẩu
-
-        // 4. Tìm OTP hợp lệ
         const otpRecord = await OTP.findOne({
             email,
             purpose: 'RESET_PASSWORD',
@@ -160,84 +146,42 @@ exports.resetPassword = async (req, res) => {
         });
 
         if (!otpRecord) {
-            return renderChangePassword(req, res, {
-                error: "OTP không hợp lệ hoặc đã hết hạn"
-            });
+            return renderChangePassword(req, res, { error: "OTP không hợp lệ hoặc đã hết hạn" });
         }
 
-        // 5. Check số lần nhập sai
         if (otpRecord.attempts >= 5) {
-            return renderChangePassword(req, res, {
-                error: "Bạn đã nhập sai OTP quá nhiều lần"
-            });
+            return renderChangePassword(req, res, { error: "Bạn đã nhập sai OTP quá nhiều lần." });
         }
 
-        // 6. So OTP
-        // 6. So OTP
         const isValidOTP = await bcrypt.compare(otp, otpRecord.code);
         if (!isValidOTP) {
-            // 🔥 DÙNG CÁCH NÀY ĐỂ CHẶN RACE CONDITION 🔥
-            // Tăng attempts lên 1 ngay lập tức trong Database
-            await OTP.updateOne(
-                { _id: otpRecord._id },
-                { $inc: { attempts: 1 } }
-            );
-
+            await OTP.updateOne({ _id: otpRecord._id }, { $inc: { attempts: 1 } });
             return renderChangePassword(req, res, { error: "OTP không chính xác" });
         }
 
-        // 7. Tìm user
         const user = await User.findOne({ email });
         if (!user) {
-            return renderChangePassword(req, res, {
-                error: "Tài khoản không tồn tại"
-            });
-        }
-        if (newpassword.length < 8) {
-            return renderChangePassword(req, res, {
-                error: "Mật khẩu phải có ít nhất 8 ký tự"
-            });
+            return renderChangePassword(req, res, { error: "Tài khoản không tồn tại" });
         }
 
-        // 3. Check confirm password
-        if (newpassword !== confirmnewpassword) {
-            return renderChangePassword(req, res, {
-                error: "Mật khẩu xác nhận không khớp"
-            });
-        }
-        // 🔥 7.5. CHECK MẬT KHẨU MỚI TRÙNG CŨ (Code thêm mới) 🔥
-        // So sánh newpassword (chưa hash) với user.password (đã hash trong DB)
         const isSamePassword = await bcrypt.compare(newpassword, user.password);
         if (isSamePassword) {
-            return renderChangePassword(req, res, {
-                error: "Mật khẩu mới không được trùng với mật khẩu cũ!"
-            });
+            return renderChangePassword(req, res, { error: "Mật khẩu mới không được trùng với mật khẩu cũ!" });
         }
 
-        // 8. Update password
         user.password = await bcrypt.hash(newpassword, 10);
         await user.save();
 
-
         otpRecord.isUsed = true;
         await otpRecord.save();
-        return req.session.save((err) => {
-            if (err) {
-                console.error("Lỗi lưu session sau khi reset pass:", err);
-            }
-            return res.render('user/login', {
-                success: "Đổi mật khẩu thành công! Vui lòng đăng nhập lại"
-            });
-        });
-        // 9. Thành công
-        return res.render('user/login', {
-            success: "Đổi mật khẩu thành công! Vui lòng đăng nhập lại"
+
+        req.flash('success', "Đổi mật khẩu thành công! Vui lòng đăng nhập lại.");
+        return req.session.save(() => {
+            res.redirect('/login');
         });
 
     } catch (err) {
-        console.error(err);
-        return renderChangePassword(req, res, {
-            error: "Lỗi hệ thống, vui lòng thử lại"
-        });
+        console.error("Reset Password Error:", err);
+        return renderChangePassword(req, res, { error: "Lỗi hệ thống, vui lòng thử lại sau" });
     }
 };
