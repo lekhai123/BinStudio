@@ -3,13 +3,7 @@ const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 const OTP = require('../Models/otp');
 const crypto = require('crypto');
-const cors = require('cors');
-// --- CẤU HÌNH GỬI EMAIL ---
 
-app.use(cors({
-    origin: 'https://binstudio.onrender.com', // Domain thật của bạn
-    credentials: true
-}));
 
 const renderChangePassword = (req, res, data) => {
     return res.render('user/Doimatkhau', {

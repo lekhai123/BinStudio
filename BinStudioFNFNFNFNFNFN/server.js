@@ -19,7 +19,13 @@ const flash = require('connect-flash');
 const orderController = require('./Controller/userOrderController');
 const MongoStore = require('connect-mongo'); // THÊM DÒNG NÀY VÀO ĐÂY
 app.set('trust proxy', 1);
+const cors = require('cors');
+// --- CẤU HÌNH GỬI EMAIL ---
 
+app.use(cors({
+    origin: 'https://binstudio.onrender.com', // Domain thật của bạn
+    credentials: true
+}));
 
 const http = require('http');
 const { Server } = require('socket.io');
