@@ -15,14 +15,19 @@ const renderChangePassword = (req, res, data) => {
     });
 };
 
+
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
+    port: 587, // Thay đổi từ 465 thành 587
+    secure: false, // false cho cổng 587
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
-    }
+    },
+    tls: {
+        rejectUnauthorized: false // Giúp tránh lỗi chứng chỉ trên môi trường Render
+    },
+    connectionTimeout: 10000, // Tăng thời gian chờ lên 10 giây
 });
 
 // --- 1. GỬI OTP (REGISTER / FORGOT) ---

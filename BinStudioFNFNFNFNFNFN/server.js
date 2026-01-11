@@ -68,11 +68,10 @@ app.use(session({
         collectionName: 'sessions'
     }),
     cookie: {
-        maxAge: 1000 * 60 * 60 * 24, // Nên để 24h thay vì 1h cho khách đỡ bị logout
+        maxAge: 1000 * 60 * 60 * 24,
         httpOnly: true,
-        // SỬA CHỖ NÀY:
         secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' // Cực kỳ quan trọng nếu FE và BE khác domain
+        sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'lax' // Đổi 'none' thành 'lax' nếu cùng domain
     }
 }));
 app.use(flash());
