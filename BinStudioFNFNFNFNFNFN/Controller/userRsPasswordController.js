@@ -18,18 +18,19 @@ const renderChangePassword = (req, res, data) => {
 
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 587, // Thay đổi từ 465 thành 587
-    secure: false, // false cho cổng 587
+    port: 587,
+    secure: false, // Bắt buộc là false với port 587
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
     },
     tls: {
-        rejectUnauthorized: false // Giúp tránh lỗi chứng chỉ trên môi trường Render
+        rejectUnauthorized: false,
+        ciphers: 'SSLv3' // Giúp tương thích bảo mật
     },
-    connectionTimeout: 10000, // Tăng thời gian chờ lên 10 giây
+    // 🔥 DÒNG NÀY QUAN TRỌNG ĐỂ SỬA LỖI TIMEOUT TRÊN RENDER:
+    family: 4 // Ép buộc sử dụng IPv4 thay vì IPv6
 });
-
 // --- 1. GỬI OTP (REGISTER / FORGOT) ---
 exports.getOTP = async (req, res) => {
     try {
