@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theo dõi đơn hàng #<%= order.orderCode %></title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: <%= (order.ghn_order_code) ? '#f26522' : '#00a651' %>;
+            --bg: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-sub: #6b7280;
+            --border: #e5e7eb;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            margin: 0;
+            color: var(--text-main);
+            padding-bottom: 40px;
+        }
+
+        .track-header {
+            background: var(--primary);
+            padding: 25px 20px 60px;
+            text-align: center;
+            color: white;
+        }
+
+            .track-header h2 {
+                margin: 0 0 5px;
+                font-size: 20px;
+                font-weight: 700;
+            }
+
+            .track-header p {
+                margin: 0;
+                font-size: 14px;
+                opacity: 0.9;
+            }
+
+        .container {
+            max-width: 600px;
+            margin: -40px auto 0;
+            padding: 0 15px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .info-group {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .info-label {
+            font-size: 11px;
+            color: var(--text-sub);
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .info-value {
+            font-size: 15px;
+            font-weight: 600;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            background: #eff6ff;
+            color: var(--primary);
+            border: 1px solid currentColor;
+        }
+
+        .timeline-box {
+            padding: 25px 20px;
+        }
+
+        .timeline {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            position: relative;
+        }
+
+            .timeline::before {
+                content: '';
+                position: absolute;
+                top: 15px;
+                bottom: 0;
+                left: 19px;
+                width: 2px;
+                background: #e5e7eb;
+                z-index: 0;
+            }
+
+        .t-item {
+            position: relative;
+            padding-left: 50px;
+            padding-bottom: 30px;
+        }
+
+            .t-item:last-child {
+                padding-bottom: 0;
+            }
+
+        .t-icon {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 40px;
+            height: 40px;
+            background: #fff;
+            border: 2px solid #e5e7eb;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9ca3af;
+            font-size: 16px;
+            z-index: 1;
+        }
+
+        .t-item.active .t-icon {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+            animation: pulse 2s infinite;
+        }
+
+        .t-time {
+            font-size: 12px;
+            color: var(--text-sub);
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .t-status {
+            font-size: 15px;
+            font-weight: 700;
+            line-height: 1.4;
+        }
+
+        .t-item.active .t-status {
+            color: var(--primary);
+        }
+
+        .t-desc {
+            font-size: 13px;
+            color: var(--text-sub);
+            margin-top: 4px;
+        }
+
+        .action-row {
+            padding: 15px 20px;
+            background: #f9fafb;
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .btn-back {
+            text-decoration: none;
+            color: var(--text-sub);
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.1);
+            }
+
+            70% {
+                box-shadow: 0 0 0 6px rgba(0, 0, 0, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="track-header">
+        <% if (order.ghn_order_code) { %>
+        <div style="font-size: 40px; margin-bottom: 10px;"><i class="fas fa-shipping-fast"></i></div>
+        <h2>Giao Hàng Nhanh</h2>
+        <p>Đối tác vận chuyển chính thức</p>
+        <% } else { %>
+        <div style="font-size: 40px; margin-bottom: 10px;"><i class="fas fa-truck-pickup"></i></div>
+        <h2>BinStudio Delivery</h2>
+        <p>Giao hàng nội bộ chuyên nghiệp</p>
+        <% } %>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <div class="info-group">
+                <div>
+                    <span class="info-label">Mã đơn hàng</span>
+                    <span class="info-value">#<%= order.orderCode %></span>
+                </div>
+                <span class="badge"><%= (order.ghn_order_code) ? 'GHN Express' : 'Local Delivery' %></span>
+            </div>
+            <div class="info-group" style="display: block;">
+                <span class="info-label">Địa chỉ nhận hàng</span>
+                <div style="margin-top: 8px; font-size: 14px;">
+                    <strong><%= order.userInfo.fullName %></strong> - <%= order.userInfo.phone %><br>
+                    <span style="color: var(--text-sub);"><%= order.userInfo.address %></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="timeline-box">
+                <ul class="timeline">
+                    <%
+                    // 1. ĐỊNH NGHĨA BỘ TRẠNG THÁI RIÊNG CHO LOCAL
+                    const localSteps = [
+                    { key: 'Pending', text: 'Đặt hàng thành công', icon: 'fa-shopping-bag', desc: 'Đơn hàng đã được hệ thống ghi nhận.' },
+                    { key: 'Confirmed', text: 'Đã xác nhận đơn hàng', icon: 'fa-check-double', desc: 'Shop đã kiểm tra và xác nhận đơn hàng của bạn.' },
+                    { key: 'Processing', text: 'Đang chuẩn bị hàng', icon: 'fa-box-open', desc: 'Sản phẩm đang được đóng gói kỹ lưỡng.' },
+                    { key: 'Shipping', text: 'Đang giao hàng', icon: 'fa-motorcycle', desc: 'Shipper đang trên đường giao hàng đến bạn.' },
+                    { key: 'Completed', text: 'Giao thành công', icon: 'fa-flag-checkered', desc: 'Đơn hàng đã được bàn giao thành công.' },
+                    { key: 'Returned', text: 'Đã hoàn trả hàng', icon: 'fa-undo-alt', desc: 'Đơn hàng đã được hoàn về kho của Shop.' }
+                    ];
+
+                    // 2. ĐỊNH NGHĨA MAP CHO GHN (Giữ nguyên logic API)
+                    const ghnStatusMap = {
+                    'ready_to_pick': { text: 'Chờ lấy hàng', icon: 'fa-box' },
+                    'picking': { text: 'Shipper đang đến lấy', icon: 'fa-truck-pickup' },
+                    'picked': { text: 'Đã lấy hàng', icon: 'fa-box-open' },
+                    'storing': { text: 'Đã nhập kho', icon: 'fa-warehouse' },
+                    'transporting': { text: 'Đang luân chuyển', icon: 'fa-truck-moving' },
+                    'delivering': { text: 'Đang giao hàng', icon: 'fa-motorcycle' },
+                    'delivered': { text: 'Giao thành công', icon: 'fa-check-circle' },
+                    'cancel': { text: 'Đơn đã hủy', icon: 'fa-times-circle' },
+                    'return': { text: 'Đang hoàn trả', icon: 'fa-undo' }
+                    };
+
+                    // --- TRƯỜNG HỢP A: ĐƠN GHN (HIỂN THỊ THEO LOG API) ---
+                    if (order.ghn_order_code && trackingLogs && trackingLogs.length > 0) {
+                    trackingLogs.forEach((log, index) => {
+                    let sKey = (log.status || '').toLowerCase();
+                    if(sKey === 'finish') sKey = 'delivered';
+                    const conf = ghnStatusMap[sKey] || { text: log.status_name, icon: 'fa-circle' };
+                    %>
+                    <li class="t-item <%= index === 0 ? 'active' : '' %>">
+                        <div class="t-icon"><i class="fas <%= conf.icon %>"></i></div>
+                        <div class="t-content">
+                            <div class="t-time"><%= new Date(log.action_at || log.updated_date).toLocaleString('vi-VN') %></div>
+                            <div class="t-status"><%= conf.text %></div>
+                            <% if (log.location && log.location.address) { %>
+                            <div class="t-desc"><i class="fas fa-map-marker-alt"></i> <%= log.location.address %></div>
+                            <% } %>
+                        </div>
+                    </li>
+                    <%
+                    });
+                    }
+                    // --- TRƯỜNG HỢP B: ĐƠN LOCAL (HIỂN THỊ THEO QUY TRÌNH NỘI BỘ) ---
+                    else {
+                    // Tìm vị trí trạng thái hiện tại trong quy trình
+                    const currentIdx = localSteps.findIndex(s => s.key === order.status);
+
+                    // Nếu đơn bị Hủy hoặc Hoàn trả (Trạng thái đặc biệt)
+                    if (['Cancelled', 'Returned'].includes(order.status)) { %>
+                    <li class="t-item active">
+                        <div class="t-icon" style="background: #ef4444; border-color: #ef4444; color: white;">
+                            <i class="fas <%= order.status === 'Cancelled' ? 'fa-times' : 'fa-undo' %>"></i>
+                        </div>
+                        <div class="t-content">
+                            <div class="t-time"><%= new Date(order.updatedAt || order.createdAt).toLocaleString('vi-VN') %></div>
+                            <div class="t-status" style="color: #ef4444;">
+                                <%= order.status === 'Cancelled' ? 'Đơn hàng đã hủy' : 'Đơn hàng đã hoàn trả' %>
+                            </div>
+                            <div class="t-desc">Đơn hàng đã dừng quá trình xử lý.</div>
+                        </div>
+                    </li>
+                    <% }
+
+                    // Hiển thị các bước đã qua (Dựng ngược từ trạng thái hiện tại lên)
+                    // Chỉ hiển thị các bước ĐÃ HOÀN THÀNH hoặc ĐANG Ở ĐÓ
+                    const displaySteps = localSteps.slice(0, (currentIdx === -1 ? 1 : currentIdx + 1)).reverse();
+
+                    displaySteps.forEach((step, index) => { %>
+                    <li class="t-item <%= index === 0 ? 'active' : '' %>">
+                        <div class="t-icon"><i class="fas <%= step.icon %>"></i></div>
+                        <div class="t-content">
+                            <div class="t-time">
+                                <%= (index === 0) ? new Date(order.updatedAt || order.createdAt).toLocaleString('vi-VN') : '---' %>
+                            </div>
+                            <div class="t-status"><%= step.text %></div>
+                            <div class="t-desc"><%= step.desc %></div>
+                        </div>
+                    </li>
+                    <% });
+                    } %>
+                </ul>
+            </div>
+
+            <div class="action-row">
+                <a href="/order" class="btn-back">
+                    <i class="fas fa-arrow-left"></i> Quay lại danh sách đơn hàng
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,4 +1,10 @@
 ﻿require('dotenv').config();
+if (process.env.NODE_ENV === 'production') {
+    console.log = function () { };
+    console.info = function () { };
+    console.warn = function () { };
+    // console.error = function () {}; // Nên giữ lại console.error để biết nếu web bị sập
+}
 const express = require('express');
 const mongoose = require('mongoose');
 const session = require('express-session');
@@ -12,6 +18,7 @@ const ghnRouter = require('./route/ghnRoute');
 const flash = require('connect-flash');
 const orderController = require('./Controller/userOrderController');
 const MongoStore = require('connect-mongo'); // THÊM DÒNG NÀY VÀO ĐÂY
+app.set('trust proxy', 1);
 
 
 const http = require('http');
@@ -49,15 +56,17 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({
     secret: process.env.SESSION_SECRET || 'binstudio_secret',
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: false, // Để false là đúng để tránh rác DB
     store: MongoStore.create({
-        mongoUrl: process.env.MONGODB_URI, // Phải đảm bảo biến này là link MongoDB Atlas
-        collectionName: 'sessions' // Tên bảng lưu session
+        mongoUrl: process.env.MONGODB_URI,
+        collectionName: 'sessions'
     }),
     cookie: {
-        maxAge: 1000 * 60 * 60 * 24, // 1 ngày
+        maxAge: 1000 * 60 * 60 * 24, // Nên để 24h thay vì 1h cho khách đỡ bị logout
         httpOnly: true,
-        secure: true // Bật dòng này nếu đã có HTTPS (trên Render thì nên bật, localhost thì tắt)
+        // SỬA CHỖ NÀY:
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' // Cực kỳ quan trọng nếu FE và BE khác domain
     }
 }));
 app.use(flash());
@@ -73,6 +82,10 @@ app.use('/', ghnRouter);
 
 // Thay vì fix cứng 3000, hãy để như này:
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server đang chạy trên port ${PORT}`);
+
+// 🔥 QUAN TRỌNG: Phải dùng server.listen thay vì app.listen để Socket.io chạy được
+server.listen(PORT, () => {
+    // Dòng này vẫn sẽ hiện ở máy bạn khi test (development)
+    // Nhưng sẽ biến mất hoàn toàn khi bạn set NODE_ENV=production trên Render
+    process.stdout.write(`🚀 BinStudio is running on port ${PORT}\n`);
 });

@@ -25,7 +25,7 @@
             background: var(--bg);
         }
 
-        /* Sidebar */
+        /* Sidebar & Main (Giữ nguyên) */
         .sidebar {
             width: 260px;
             background: var(--sidebar-bg);
@@ -66,7 +66,6 @@
                     font-weight: bold;
                 }
 
-        /* Main Content */
         .main-content {
             flex: 1;
             padding: 40px;
@@ -132,35 +131,52 @@
                 vertical-align: middle;
             }
 
-        /* Status Badges */
+        /* --- CẬP NHẬT CSS STATUS BADGES (MỚI) --- */
         .badge {
-            padding: 5px 10px;
-            border-radius: 5px;
+            padding: 6px 12px;
+            border-radius: 4px;
             font-size: 11px;
             font-weight: bold;
             text-transform: uppercase;
             white-space: nowrap;
+            display: inline-block;
         }
 
-        .pending {
+        .st-Pending {
             background: #fff3cd;
             color: #856404;
         }
-
-        .shipping, .delivering {
+        /* Vàng - Chờ xử lý */
+        .st-Confirmed {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        /* Xanh lơ - Đã xác nhận */
+        .st-Processing {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+        /* Xám - Đang đóng gói */
+        .st-Shipping {
             background: #cce5ff;
             color: #004085;
         }
-
-        .completed, .delivered {
+        /* Xanh dương - Đang giao */
+        .st-Completed {
             background: #d4edda;
             color: #155724;
         }
-
-        .cancelled {
+        /* Xanh lá - Hoàn thành */
+        .st-Cancelled {
             background: #f8d7da;
             color: #721c24;
         }
+        /* Đỏ - Hủy */
+        .st-Returned {
+            background: #343a40;
+            color: #fff;
+        }
+        /* Đen - Hoàn hàng */
 
         /* Filter Form */
         .filter-form {
@@ -221,7 +237,6 @@
                 <li><a href="/admin/orders" class="active" style="color: white;">🧾 Đơn hàng & Doanh thu</a></li>
                 <li><a href="/admin/config">⚙️ Cấu hình API và Log</a></li>
                 <li><a href="/admin/homepage" style="color: white; font-weight: bold;">🏠 Chỉnh sửa Trang chủ</a></li>
-
                 <li><a href="/" style="color: var(--accent); margin-top: 20px;">🏠 Quay lại Shop</a></li>
             </ul>
         </aside>
@@ -271,11 +286,13 @@
                     <div style="flex: 1;">
                         <select name="status" class="filter-input" style="width: 100%;">
                             <option value="">-- Tất cả trạng thái --</option>
-
-                            <option value="pending" <%= (typeof queryData !== 'undefined' && queryData.status === 'pending') ? 'selected' : '' %>>⏳ Chờ xác nhận</option>
-                            <option value="delivering" <%= (typeof queryData !== 'undefined' && queryData.status === 'delivering') ? 'selected' : '' %>>🚚 Đang giao hàng</option>
-                            <option value="delivered" <%= (typeof queryData !== 'undefined' && queryData.status === 'delivered') ? 'selected' : '' %>>✅ Hoàn thành</option>
-                            <option value="cancelled" <%= (typeof queryData !== 'undefined' && queryData.status === 'cancelled') ? 'selected' : '' %>>❌ Đã hủy</option>
+                            <option value="Pending" <%= (typeof queryData !== 'undefined' && queryData.status === 'Pending') ? 'selected' : '' %>>⏳ Chờ xác nhận</option>
+                            <option value="Confirmed" <%= (typeof queryData !== 'undefined' && queryData.status === 'Confirmed') ? 'selected' : '' %>>📋 Đã xác nhận</option>
+                            <option value="Processing" <%= (typeof queryData !== 'undefined' && queryData.status === 'Processing') ? 'selected' : '' %>>📦 Đang đóng gói</option>
+                            <option value="Shipping" <%= (typeof queryData !== 'undefined' && queryData.status === 'Shipping') ? 'selected' : '' %>>🚚 Đang giao hàng</option>
+                            <option value="Completed" <%= (typeof queryData !== 'undefined' && queryData.status === 'Completed') ? 'selected' : '' %>>✅ Hoàn thành</option>
+                            <option value="Returned" <%= (typeof queryData !== 'undefined' && queryData.status === 'Returned') ? 'selected' : '' %>>↩️ Đã hoàn hàng</option>
+                            <option value="Cancelled" <%= (typeof queryData !== 'undefined' && queryData.status === 'Cancelled') ? 'selected' : '' %>>❌ Đã hủy</option>
                         </select>
                     </div>
                     <button type="submit" class="btn-filter">Lọc</button>
@@ -302,12 +319,15 @@
                         <tr>
                             <td style="color: #333;">
                                 <b>#<%= order.orderCode ? order.orderCode : order._id.toString().slice(-6).toUpperCase() %></b>
+                                <% if (order.ghn_order_code) { %>
+                                <br><small style="color: #d1b06b; font-weight: bold;">GHN: <%= order.ghn_order_code %></small>
+                                <% } %>
                             </td>
 
                             <td>
                                 <b><%= order.userInfo.fullName %></b><br>
                                 <small style="color: #666;">📞 <%= order.userInfo.phone %></small><br>
-                                <small style="color: #888; font-size: 11px;">✉️ <%= order.userInfo.email || 'Không có email' %></small>
+                                <small style="color: #888; font-size: 11px;">✉️ <%= order.userInfo.address %></small>
                             </td>
 
                             <td><%= new Date(order.createdAt).toLocaleDateString('vi-VN') %></td>
@@ -319,29 +339,13 @@
                             <td>
                                 <form action="/admin/orders/update-payment/<%= order._id %>" method="POST">
                                     <%
-                                    let payStyle = 'color: #721c24; background: #f8d7da;'; // Default: Unpaid (Đỏ)
-                                    if (order.paymentStatus === 'Paid') {
-                                    payStyle = 'color: #155724; background: #d4edda;'; // Paid (Xanh)
-                                    } else if (order.paymentStatus === 'Refund') {
-                                    payStyle = 'color: #e65100; background: #fff3e0;'; // Refund (Cam)
-                                    }
+                                    let payStyle = 'color: #721c24; background: #f8d7da;';
+                                    if (order.paymentStatus === 'Paid') { payStyle = 'color: #155724; background: #d4edda;'; }
+                                    else if (order.paymentStatus === 'Refund') { payStyle = 'color: #e65100; background: #fff3e0;'; }
                                     %>
                                     <select name="paymentStatus"
                                             style="border: none; padding: 5px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; outline: none; <%= payStyle %>"
-                                            onchange="
-                                                const val = this.value;
-                                                if(val === 'Refund') {
-                                                    if(confirm('⚠️ XÁC NHẬN HOÀN TIỀN:\n\nBạn xác nhận đã hoàn lại tiền cho khách?\nHệ thống sẽ cập nhật trạng thái đơn hàng.')) {
-                                                        this.form.submit();
-                                                    } else { location.reload(); }
-                                                } else if (val === 'Paid') {
-                                                     if(confirm('Xác nhận đơn hàng này ĐÃ THANH TOÁN?')) {
-                                                        this.form.submit();
-                                                    } else { location.reload(); }
-                                                } else {
-                                                    this.form.submit();
-                                                }
-                                            ">
+                                            onchange="if(confirm('Xác nhận cập nhật trạng thái thanh toán?')) this.form.submit(); else location.reload();">
                                         <option value="Unpaid" <%= (!order.paymentStatus || order.paymentStatus === 'Unpaid' || order.paymentStatus === 'Failed') ? 'selected' : '' %>>Chưa thanh toán</option>
                                         <option value="Paid" <%= order.paymentStatus === 'Paid' ? 'selected' : '' %>>Đã thanh toán</option>
                                         <option value="Refund" <%= order.paymentStatus === 'Refund' ? 'selected' : '' %>>Đã hoàn tiền</option>
@@ -350,31 +354,107 @@
                             </td>
 
                             <td>
-                                <span class="badge <%= order.status %>">
-                                    <%= order.status === 'pending' ? 'Chờ vận chuyển' :
-                                    order.status === 'delivering' ? 'Đang giao hàng' :
-                                    order.status === 'delivered' ? 'Hoàn thành' :
-                                    order.status === 'cancelled' ? 'Đã hủy' : 'Không xác định' %>
+                                <%
+                                let statusText = '';
+                                let statusClass = 'st-' + order.status;
+                                switch(order.status) {
+                                case 'Pending': statusText = 'Chờ xác nhận'; break;
+                                case 'Confirmed': statusText = 'Đã xác nhận'; break;
+                                case 'Processing': statusText = 'Đang đóng gói'; break;
+                                case 'Shipping': statusText = 'Đang giao hàng'; break;
+                                case 'Completed': statusText = 'Hoàn thành'; break;
+                                case 'Cancelled': statusText = 'Đã hủy'; break;
+                                case 'Returned': statusText = 'Đã hoàn hàng'; break;
+                                default: statusText = order.status;
+                                }
+                                %>
+                                <span class="badge <%= statusClass %>">
+                                    <%= statusText %>
                                 </span>
                             </td>
 
                             <td>
+                            <td style="min-width: 160px;">
+                                <% if (['Cancelled', 'Returned'].includes(order.status)) { %>
+                                <span style="color: #666; font-size: 12px; font-style: italic;">🔒 Đã đóng</span>
+
+                                <% } else { %>
                                 <form action="/admin/orders/update-status/<%= order._id %>" method="POST">
                                     <select name="status"
-                                            onchange="if(this.value === 'cancelled') {
-                                                if(confirm('⚠️ CẢNH BÁO: HỦY ĐƠN HÀNG.\n\n- Thao tác này sẽ hoàn trả kho.\n- Không thể hoàn tác.\n\nBạn chắc chắn chứ?')) {
-                                                    this.form.submit();
-                                                } else { this.value = ''; }
-                                            } else { this.form.submit(); }"
-                                            style="font-size: 12px; padding: 5px; border-radius: 4px; border: 1px solid #ddd; cursor: pointer;">
+                                            onchange="
+                                            const val=this.value;
+                                            const currentStatus='<%= order.status %>' ;
+                                            if (val==='Cancelled' ) {
+                                            if(!confirm('⚠️ HỦY ĐƠN & HOÀN KHO?\n(Chỉ dùng cho đơn chưa thanh toán)')) { this.value=currentStatus; return; }
+                                            }
+                                            else if (val==='Returned' ) {
+                                            if(!confirm('⚠️ KHÁCH TRẢ HÀNG / GIAO THẤT BẠI?\n- Hệ thống sẽ cộng lại kho.\n- Nếu khách đã trả tiền, hãy nhớ hoàn tiền.')) { this.value=currentStatus; return; }
+                                            }
+                                            else if (val==='Completed' && '<%= order.paymentMethod %>' ==='COD' ) {
+                                            if(!confirm('✅ XÁC NHẬN GIAO THÀNH CÔNG?\nHệ thống sẽ tự động cập nhật thanh toán thành ĐÃ TRẢ TIỀN (Paid).')) { this.value=currentStatus; return; }
+                                            }
+                                            this.form.submit();
+                                            "
+                                            style="font-size: 12px; padding: 6px; border-radius: 4px; border: 1px solid #ddd; cursor: pointer; width: 100%; font-weight: 500;">
 
-                                        <option value="" disabled selected>Cập nhật</option>
-                                        <option value="pending" <%= order.status === 'pending' ? 'hidden' : '' %>>Chờ vận chuyển</option>
-                                        <option value="delivering" <%= order.status === 'delivering' ? 'hidden' : '' %>>Đang giao hàng</option>
-                                        <option value="delivered" <%= order.status === 'delivered' ? 'hidden' : '' %>>Hoàn thành</option>
-                                        <option value="cancelled" <%= order.status === 'cancelled' ? 'hidden' : '' %> style="color: red; font-weight: bold;">Hủy đơn</option>
+                                        <option value="<%= order.status %>" selected hidden>
+                                            <%= order.status === 'Pending' ? '⏳ Chờ xác nhận' :
+                                            order.status === 'Confirmed' ? '📋 Đã xác nhận' :
+                                            order.status === 'Processing' ? '📦 Đang đóng gói' :
+                                            order.status === 'Shipping' ? '🚚 Đang giao hàng' :
+                                            order.status === 'Completed' ? '✅ Hoàn thành' : order.status %>
+                                        </option>
+
+                                        <% if (order.status === 'Pending') { %>
+                                        <option value="Confirmed">📋 Xác nhận đơn</option>
+                                        <option value="Processing">📦 Đóng gói ngay</option>
+                                        <option value="Cancelled" style="color: red;">❌ Hủy đơn</option>
+                                        <% } %>
+
+                                        <% if (order.status === 'Confirmed') { %>
+                                        <option value="Processing">📦 Đóng gói</option>
+                                        <option value="Cancelled" style="color: red;">❌ Hủy đơn</option>
+                                        <% } %>
+
+                                        <% if (order.status === 'Processing') { %>
+                                        <% if (order.shippingMethod === 'LOCAL') { %>
+                                        <option value="Shipping">🛵 Bắt đầu đi giao (Local)</option>
+                                        <% } else { %>
+                                        <option disabled>(Chờ tạo đơn GHN bên dưới)</option>
+                                        <% } %>
+                                        <option value="Cancelled" style="color: red;">❌ Hủy đơn</option>
+                                        <% } %>
+
+                                        <% if (order.status === 'Shipping') { %>
+                                        <% if (order.shippingMethod === 'LOCAL') { %>
+                                        <option value="Completed" style="color: green; font-weight: bold;">✅ Khách đã nhận</option>
+                                        <option value="Returned" style="color: #d9534f;">↩️ Khách trả hàng</option>
+                                        <% } else { %>
+                                        <option disabled>📡 GHN đang giao...</option>
+                                        <% } %>
+                                        <% } %>
+
+                                        <% if (order.status === 'Completed') { %>
+                                        <option value="Returned">↩️ Khách trả hàng</option>
+                                        <% } %>
+
                                     </select>
                                 </form>
+
+                                <% if (order.status === 'Processing' && order.shippingMethod === 'GHN' && !order.ghn_order_code) { %>
+                                <button onclick="pushToGHN('<%= order._id %>')"
+                                        style="margin-top:5px; background:var(--accent); color:white; border:none; padding:6px 10px; border-radius:4px; font-size:11px; cursor:pointer; width:100%; font-weight: 600;">
+                                    <i class="fas fa-truck"></i> Tạo đơn GHN
+                                </button>
+                                <% } %>
+
+                                <% if (order.ghn_order_code) { %>
+                                <div style="margin-top: 5px; font-size: 11px; color: #004085; background: #cce5ff; padding: 4px; border-radius: 4px; text-align: center;">
+                                    <b><%= order.ghn_order_code %></b>
+                                    <div style="font-size: 9px;">(GHN Auto Sync)</div>
+                                </div>
+                                <% } %>
+                                <% } %>
                             </td>
                         </tr>
                         <% }) %>
@@ -396,7 +476,6 @@
     <script>
         const rawData = <%- chartData %>;
         const rawLabels = <%- chartLabels %>;
-
         const ctx = document.getElementById('revenueChart').getContext('2d');
         new Chart(ctx, {
             type: 'line',
@@ -421,27 +500,30 @@
                     legend: { position: 'top' },
                     tooltip: {
                         callbacks: {
-                            label: function (context) {
-                                return 'Doanh thu: ' + context.raw.toLocaleString('vi-VN') + 'đ';
-                            }
+                            label: function (context) { return 'Doanh thu: ' + context.raw.toLocaleString('vi-VN') + 'đ'; }
                         }
                     }
                 },
                 scales: {
                     y: {
                         beginAtZero: true,
-                        ticks: {
-                            callback: function (value) {
-                                if (value >= 1000000) return (value / 1000000).toFixed(1) + 'M';
-                                if (value >= 1000) return (value / 1000).toFixed(0) + 'k';
-                                return value;
-                            }
-                        }
+                        ticks: { callback: function (value) { if (value >= 1000000) return (value / 1000000).toFixed(1) + 'M'; if (value >= 1000) return (value / 1000).toFixed(0) + 'k'; return value; } }
                     },
                     x: { grid: { display: false } }
                 }
             }
         });
+
+        // Hàm đẩy đơn GHN (Bạn đã có ở bước trước)
+        async function pushToGHN(orderId) {
+            if (!confirm("Tạo đơn vận chuyển GHN cho đơn hàng này?")) return;
+            try {
+                const res = await fetch(`/admin/order/push-ghn/${orderId}`, { method: 'POST' });
+                const data = await res.json();
+                if (data.success) { alert(data.message); location.reload(); }
+                else { alert(data.message); }
+            } catch (e) { alert("Lỗi kết nối"); }
+        }
     </script>
 </body>
 </html>

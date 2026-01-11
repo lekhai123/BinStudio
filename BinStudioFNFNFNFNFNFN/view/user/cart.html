@@ -863,102 +863,26 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
+        // --- 1. KHỞI TẠO BIẾN TOÀN CỤC ---
         const provinceSelect = document.getElementById('province');
         const districtSelect = document.getElementById('district');
         const wardSelect = document.getElementById('ward');
+        const streetInput = document.getElementById('streetDetail');
         const savedAddress = document.getElementById('savedAddress').value;
+
         let currentShipFee = 0;
-        const ID_HCM = 202;
 
-        const socket = io();
-        socket.on('payment-success', (data) => {
-            alert(`Thanh toán thành công đơn hàng: ${data.orderCode}`);
-            document.getElementById('qrPopup').style.display = 'none';
-            window.location.href = '/order';
-        });
-
-        // --- HÀM LOGIC CŨ (Đã test hoạt động tốt) ---
-        function toggleLocalShippingOption() {
-            const currentProvinceId = parseInt(provinceSelect.value);
-            const localRadio = document.querySelector('input[value="LOCAL"]');
-            const localCard = localRadio.closest('.radio-card');
-            const ghnRadio = document.querySelector('input[value="GHN"]');
-
-            if (currentProvinceId === ID_HCM) {
-                localRadio.disabled = false;
-                localCard.style.opacity = "1";
-                localCard.style.cursor = "pointer";
-                document.getElementById('fee-LOCAL').innerText = "Chọn để tính";
-            } else {
-                localRadio.disabled = true;
-                localRadio.checked = false;
-                localCard.style.opacity = "0.5";
-                localCard.style.cursor = "not-allowed";
-                document.getElementById('fee-LOCAL').innerText = "Chỉ TP.HCM";
-                if (!ghnRadio.checked) {
-                    ghnRadio.checked = true;
-                    selectRadio(ghnRadio.closest('.radio-card'));
-                }
-            }
-        }
-
-        function parseSavedAddress() {
-            if (!savedAddress || savedAddress.trim() === "") return null;
-            const parts = savedAddress.split(',').map(p => p.trim());
-            if (parts.length < 3) return null;
-            return {
-                province: parts[parts.length - 1],
-                district: parts[parts.length - 2],
-                ward: parts[parts.length - 3],
-                street: parts.slice(0, parts.length - 3).join(', ')
-            };
-        }
-
-        async function initAddress() {
-            try {
-                const addr = parseSavedAddress();
-                const res = await fetch('/api/ghn/provinces');
-                const provinces = await res.json();
-                provinceSelect.innerHTML = '<option value="">Tỉnh/Thành</option>';
-                provinces.forEach(p => {
-                    const opt = new Option(p.ProvinceName, p.ProvinceID);
-                    if (addr && (p.ProvinceName.includes(addr.province) || addr.province.includes(p.ProvinceName))) {
-                        opt.selected = true;
-                    }
-                    provinceSelect.options.add(opt);
-                });
-                toggleLocalShippingOption();
-                if (provinceSelect.value) await loadDistricts(addr);
-            } catch (err) { console.error(err); }
-        }
-
-        async function loadDistricts(addr = null) {
-            if (!provinceSelect.value) return;
-            const res = await fetch(`/api/ghn/districts/${provinceSelect.value}`);
-            const districts = await res.json();
-            districtSelect.innerHTML = '<option value="">Quận/Huyện</option>';
-            districts.forEach(d => {
-                const opt = new Option(d.DistrictName, d.DistrictID);
-                if (addr && d.DistrictName.includes(addr.district)) opt.selected = true;
-                districtSelect.options.add(opt);
+        // Kết nối Socket (Nếu server có)
+        try {
+            const socket = io();
+            socket.on('payment-success', (data) => {
+                alert(`Thanh toán thành công đơn hàng: ${data.orderCode}`);
+                document.getElementById('qrPopup').style.display = 'none';
+                window.location.href = '/order';
             });
-            if (districtSelect.value) await loadWards(addr);
-        }
+        } catch (e) { console.log("Socket chưa sẵn sàng"); }
 
-        async function loadWards(addr = null) {
-            if (!districtSelect.value) return;
-            const res = await fetch(`/api/ghn/wards/${districtSelect.value}`);
-            const wards = await res.json();
-            wardSelect.innerHTML = '<option value="">Phường/Xã</option>';
-            wards.forEach(w => {
-                const opt = new Option(w.WardName, w.WardCode);
-                if (addr && w.WardName.includes(addr.ward)) opt.selected = true;
-                wardSelect.options.add(opt);
-            });
-            if (addr && addr.street) document.getElementById('streetDetail').value = addr.street;
-            await calcShippingFee();
-        }
-
+        // --- 2. HÀM TÍNH TOÁN TIỀN (LOGIC GỐC) ---
         function getSubtotal() {
             let subtotal = 0;
             document.querySelectorAll('.item-checkbox:checked').forEach(cb => {
@@ -977,86 +901,267 @@
         }
 
         async function calcShippingFee() {
-            const districtId = document.getElementById('district').value;
-            const wardCode = document.getElementById('ward').value;
+            const districtId = districtSelect.value;
+            const wardCode = wardSelect.value;
             const carrierEl = document.querySelector('input[name="shipping"]:checked');
             const carrier = carrierEl ? carrierEl.value : 'GHN';
+            const labelFee = document.getElementById(`fee-${carrier}`);
 
-            if (carrier === 'GHN') document.getElementById('fee-GHN').innerText = "...";
-            if (!districtId || !wardCode) { currentShipFee = 0; updateTotalPrice(); return; }
+            // Nếu chưa chọn đủ địa chỉ thì reset phí về 0
+            if (!districtId || !wardCode) {
+                currentShipFee = 0;
+                updateTotalPrice();
+                return;
+            }
 
             try {
-                if (carrier === 'GHN') document.getElementById('fee-GHN').innerText = "Đang tính...";
+                if (labelFee) labelFee.innerText = "Đang tính...";
+
                 const res = await fetch('/api/calc-shipping', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        provinceId: document.getElementById('province').value,
-                        districtId, wardCode, carrier,
+                        provinceId: provinceSelect.value,
+                        districtId: districtId,
+                        wardCode: wardCode,
+                        carrier: carrier,
                         orderAmount: getSubtotal(),
-                        street: document.getElementById('streetDetail').value
+                        street: streetInput.value
                     })
                 });
                 const data = await res.json();
+
                 if (data.success) {
                     currentShipFee = data.fee;
-                    document.getElementById(`fee-${carrier}`).innerText = data.fee === 0 ? "Miễn phí" : data.fee.toLocaleString('vi-VN') + 'đ';
+                    if (labelFee) labelFee.innerText = data.fee === 0 ? "Miễn phí" : data.fee.toLocaleString('vi-VN') + 'đ';
                 } else {
                     currentShipFee = 0;
-                    document.getElementById(`fee-${carrier}`).innerText = "Lỗi";
+                    if (labelFee) labelFee.innerText = "Lỗi";
+                    console.warn(data.message);
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) {
+                console.error(e);
+                if (labelFee) labelFee.innerText = "Lỗi mạng";
+            }
             updateTotalPrice();
         }
+        function normalize(str) {
+            if (!str) return "";
+            return str.toLowerCase()
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Bỏ dấu
+                .replace(/thanh pho|tinh|quan|huyen|thi xa|phuong|xa|tt|phuong/g, "") // Bỏ từ khóa
+                .replace(/[^a-z0-9]/g, "") // Bỏ ký tự đặc biệt (chỉ giữ lại chữ và số)
+                .trim();
+        }
 
-        // --- DOM EVENTS ---
-        provinceSelect.addEventListener('change', async () => { await loadDistricts(); updateTotalPrice(); toggleLocalShippingOption(); });
-        districtSelect.addEventListener('change', async () => { currentShipFee = 0; updateTotalPrice(); await loadWards(); });
-        wardSelect.addEventListener('change', async () => { await calcShippingFee(); });
+        // --- 3. LOGIC LOAD ĐỊA CHỈ & AUTO FILL ---
 
+        // Tách chuỗi địa chỉ cũ: "Số 1, Phường A, Quận B, Tỉnh C"
+        function getAddressParts() {
+            if (!savedAddress || savedAddress.length < 5) return null;
+            const parts = savedAddress.split(',').map(s => s.trim());
+            if (parts.length < 3) return null;
+
+            return {
+                province: parts[parts.length - 1],
+                district: parts[parts.length - 2],
+                ward: parts[parts.length - 3],
+                street: parts.slice(0, parts.length - 3).join(', ')
+            };
+        }
+
+        // Load Tỉnh
+        async function loadProvinces() {
+            try {
+                const res = await fetch('/api/ghn/provinces');
+                const data = await res.json();
+
+                provinceSelect.innerHTML = '<option value="">-- Tỉnh/Thành --</option>';
+                const saved = getAddressParts();
+                let foundID = null;
+
+                data.forEach(p => {
+                    const opt = new Option(p.ProvinceName, p.ProvinceID);
+                    // So sánh Tỉnh (Dùng === cho chính xác)
+                    if (saved && normalize(p.ProvinceName) === normalize(saved.province)) {
+                        opt.selected = true;
+                        foundID = p.ProvinceID;
+                    }
+                    provinceSelect.add(opt);
+                });
+
+                if (foundID) await loadDistricts(foundID, saved);
+                else toggleLocalShippingOption();
+
+            } catch (e) { console.error("Lỗi load Tỉnh:", e); }
+        }
+
+        // Load Huyện
+        async function loadDistricts(provinceId, savedObj) {
+            try {
+                const res = await fetch(`/api/ghn/districts/${provinceId}`);
+                const data = await res.json();
+
+                districtSelect.innerHTML = '<option value="">-- Quận/Huyện --</option>';
+                let foundID = null;
+
+                data.forEach(d => {
+                    const opt = new Option(d.DistrictName, d.DistrictID);
+                    // So sánh Huyện
+                    if (savedObj && normalize(d.DistrictName) === normalize(savedObj.district)) {
+                        opt.selected = true;
+                        foundID = d.DistrictID;
+                    }
+                    districtSelect.add(opt);
+                });
+
+                if (foundID) await loadWards(foundID, savedObj);
+                toggleLocalShippingOption();
+
+            } catch (e) { console.error("Lỗi load Huyện:", e); }
+        }
+        // Load Xã
+        async function loadWards(districtId, savedObj) {
+            try {
+                const res = await fetch(`/api/ghn/wards/${districtId}`);
+                const data = await res.json();
+
+                wardSelect.innerHTML = '<option value="">-- Phường/Xã --</option>';
+                let foundCode = null;
+
+                data.forEach(w => {
+                    const opt = new Option(w.WardName, w.WardCode);
+
+                    // 🔥 SỬA CHỖ NÀY: Dùng === thay vì includes
+                    // Logic: normalize("Phường 11") -> "11"
+                    //        normalize("Phường 1")  -> "1"
+                    // "11" === "1" -> False (Không bị nhầm nữa)
+
+                    if (savedObj && normalize(w.WardName) === normalize(savedObj.ward)) {
+                        opt.selected = true;
+                        foundCode = w.WardCode;
+                    }
+                    wardSelect.add(opt);
+                });
+
+                // Điền nốt số nhà
+                if (savedObj && savedObj.street) streetInput.value = savedObj.street;
+                // Tính phí ship luôn
+                if (foundCode) calcShippingFee();
+
+            } catch (e) { console.error("Lỗi load Xã:", e); }
+        }
+
+        // --- 4. SỰ KIỆN THAY ĐỔI (CHANGE EVENT) ---
+
+        provinceSelect.addEventListener('change', function () {
+            districtSelect.innerHTML = '<option value="">Đang tải...</option>';
+            wardSelect.innerHTML = '<option value="">-- Phường/Xã --</option>';
+            if (this.value) loadDistricts(this.value);
+            else districtSelect.innerHTML = '<option value="">-- Quận/Huyện --</option>';
+
+            toggleLocalShippingOption();
+            currentShipFee = 0; updateTotalPrice();
+        });
+
+        districtSelect.addEventListener('change', function () {
+            wardSelect.innerHTML = '<option value="">Đang tải...</option>';
+            if (this.value) loadWards(this.value);
+            else wardSelect.innerHTML = '<option value="">-- Phường/Xã --</option>';
+            currentShipFee = 0; updateTotalPrice();
+        });
+
+        wardSelect.addEventListener('change', function () {
+            calcShippingFee();
+        });
+
+        // Sự kiện Checkbox & Radio
         document.querySelectorAll('.item-checkbox, #select-all').forEach(el => {
             el.addEventListener('change', () => {
-                if (el.id === 'select-all') document.querySelectorAll('.item-checkbox').forEach(cb => cb.checked = el.checked);
-                updateTotalPrice(); calcShippingFee();
+                if (el.id === 'select-all') {
+                    document.querySelectorAll('.item-checkbox').forEach(cb => cb.checked = el.checked);
+                }
+                updateTotalPrice();
+                if (wardSelect.value) calcShippingFee();
             });
         });
 
-        function selectRadio(element) {
+        // --- 5. CÁC HÀM XỬ LÝ NÚT BẤM (Global) ---
+
+        window.selectRadio = function (element) {
             if (element.querySelector('input').disabled) return;
-            element.parentElement.querySelectorAll('.radio-card').forEach(c => c.classList.remove('selected'));
+            document.querySelectorAll('.radio-card').forEach(c => c.classList.remove('selected'));
             element.classList.add('selected');
             element.querySelector('input').checked = true;
             calcShippingFee();
+        };
+
+        function toggleLocalShippingOption() {
+            // ID HCM có thể là 202 hoặc 201 tùy GHN trả về, bạn check console log nếu không hiện
+            const isHCM = parseInt(provinceSelect.value) === 202;
+            const localRadio = document.querySelector('input[value="LOCAL"]');
+            const localCard = localRadio.closest('.radio-card');
+            const ghnRadio = document.querySelector('input[value="GHN"]');
+
+            if (isHCM) {
+                localRadio.disabled = false;
+                localCard.style.opacity = "1";
+                localCard.style.cursor = "pointer";
+                document.getElementById('fee-LOCAL').innerText = "Chọn để tính";
+            } else {
+                localRadio.disabled = true;
+                localRadio.checked = false;
+                localCard.style.opacity = "0.5";
+                localCard.style.cursor = "not-allowed";
+                document.getElementById('fee-LOCAL').innerText = "Chỉ TP.HCM";
+                if (!ghnRadio.checked) {
+                    ghnRadio.checked = true;
+                    selectRadio(ghnRadio.closest('.radio-card'));
+                }
+            }
         }
 
-        function getFullAddressString() {
+        function getFullAddress() {
             const p = provinceSelect.options[provinceSelect.selectedIndex]?.text || "";
             const d = districtSelect.options[districtSelect.selectedIndex]?.text || "";
             const w = wardSelect.options[wardSelect.selectedIndex]?.text || "";
-            const s = document.getElementById('streetDetail').value;
-            return `${s}, ${w}, ${d}, ${p}`.replace(/^, /, '');
+            return `${streetInput.value}, ${w}, ${d}, ${p}`.replace(/^, /, '');
         }
 
-        async function saveUserInfo() {
+        // --- ĐẶT HÀNG ---
+        window.placeOrder = async function () {
             const fullName = document.getElementById('fullName').value.trim();
             const phone = document.getElementById('phone').value.trim();
-            if (!fullName || !phone) return alert("Vui lòng nhập tên và số điện thoại!");
-            const payload = { fullName, phone, address: getFullAddressString() };
-            try {
-                await fetch('/save-profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                alert("Đã lưu thông tin!");
-            } catch (e) { alert("Lỗi lưu thông tin"); }
-        }
-
-        async function placeOrder() {
             const selectedCheckboxes = document.querySelectorAll('.item-checkbox:checked');
-            if (selectedCheckboxes.length === 0) return alert("Vui lòng chọn sản phẩm!");
-            if (!document.getElementById('streetDetail').value) return alert("Vui lòng nhập địa chỉ!");
 
-            const selectedItems = Array.from(selectedCheckboxes).map(cb => {
-                const parts = cb.value.split('|');
+            // 1. Kiểm tra chọn sản phẩm
+            if (selectedCheckboxes.length === 0) return alert("Vui lòng chọn sản phẩm trong giỏ hàng!");
+
+            // 2. Kiểm tra thông tin cơ bản
+            if (!fullName) return alert("Vui lòng nhập họ tên người nhận!");
+
+            // 3. 🔥 KIỂM TRA SỐ ĐIỆN THOẠI (Dùng Regex)
+            // - Phải là số
+            // - Phải bắt đầu bằng số 0 (thông lệ VN)
+            // - Phải đúng 10 chữ số
+            const vnf_regex = /^(0)[0-9]{9}$/;
+            if (!phone) {
+                return alert("Vui lòng nhập số điện thoại!");
+            } else if (vnf_regex.test(phone) === false) {
+                return alert("Số điện thoại không hợp lệ! (Phải có 10 chữ số và bắt đầu bằng số 0)");
+            }
+
+            // 4. Kiểm tra địa chỉ
+            if (!provinceSelect.value) return alert("Vui lòng chọn Tỉnh/Thành!");
+            if (!districtSelect.value) return alert("Vui lòng chọn Quận/Huyện!");
+            if (!wardSelect.value) return alert("Vui lòng chọn Phường/Xã!");
+            if (!streetInput.value.trim()) return alert("Vui lòng nhập số nhà, tên đường cụ thể!");
+
+            // --- TIẾN HÀNH GOM DỮ LIỆU ĐẶT HÀNG ---
+            const items = Array.from(selectedCheckboxes).map(cb => {
+                const [pid, size] = cb.value.split('|');
                 const qty = parseInt(cb.closest('tr').querySelector('.qty-val').innerText);
-                return { productId: parts[0], size: parts[1], quantity: qty };
+                return { productId: pid, size, quantity: qty };
             });
 
             const btn = document.querySelector('.btn-checkout');
@@ -1067,12 +1172,14 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        items: selectedItems,
+                        items,
                         shippingInfo: {
-                            fullName: document.getElementById('fullName').value,
-                            phone: document.getElementById('phone').value,
-                            address: getFullAddressString(),
-                            provinceId: provinceSelect.value, districtId: districtSelect.value, wardCode: wardSelect.value
+                            fullName: fullName,
+                            phone: phone,
+                            address: getFullAddress(),
+                            provinceId: provinceSelect.value,
+                            districtId: districtSelect.value,
+                            wardCode: wardSelect.value
                         },
                         shippingMethod: document.querySelector('input[name="shipping"]:checked').value,
                         paymentMethod: document.querySelector('input[name="payment"]:checked').value,
@@ -1081,57 +1188,62 @@
                     })
                 });
                 const data = await res.json();
-                if (data.success && data.type === 'PAYOS' && data.checkoutUrl) {
-                    window.location.href = data.checkoutUrl;
+                if (data.success) {
+                    if (data.type === 'PAYOS' && data.checkoutUrl) window.location.href = data.checkoutUrl;
+                    else window.location.href = '/order';
                 } else {
                     alert(data.message || "Lỗi đặt hàng");
                     btn.innerText = "THANH TOÁN NGAY"; btn.disabled = false;
                 }
-            } catch (err) { alert("Lỗi kết nối"); btn.disabled = false; }
-        }
-
-        // Thêm tham số currentQty vào cuối hàm
-        async function changeQty(productId, action, size, currentQty) {
-
-            // --- KIỂM TRA LOGIC XÓA ---
-            // Nếu hành động là GIẢM và số lượng đang là 1 (hoặc nhỏ hơn)
-            if (action === 'decrease' && currentQty <= 1) {
-                // Hiện thông báo xác nhận
-                const isConfirm = confirm("Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?");
-
-                // Nếu người dùng ấn "Hủy" (Cancel) -> Dừng hàm ngay lập tức
-                if (!isConfirm) return;
+            } catch (e) {
+                alert("Lỗi kết nối server");
+                btn.innerText = "THANH TOÁN NGAY"; btn.disabled = false;
             }
-            // ---------------------------
+        };
 
+        window.changeQty = async function (pid, action, size, currentQty) {
+            if (action === 'decrease' && currentQty <= 1) {
+                if (!confirm("Xóa sản phẩm này?")) return;
+            }
             try {
                 const res = await fetch('/update-cart', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ productId, action, size })
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ productId: pid, action, size })
                 });
-
                 const data = await res.json();
+                if (data.success) location.reload();
+            } catch (e) { console.error(e); }
+        };
 
-                if (data.success) {
-                    location.reload();
-                } else {
-                    alert(data.message);
-                }
-            } catch (error) {
-                console.error(error);
-                alert("Lỗi kết nối đến máy chủ");
-            }
-        }
-
-        async function removeItem(productId, size) {
-            if (confirm("Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?")) {
-                await fetch('/remove-from-cart', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ productId, size }) });
+        window.removeItem = async function (pid, size) {
+            if (confirm("Xóa sản phẩm này?")) {
+                await fetch('/remove-from-cart', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ productId: pid, size })
+                });
                 location.reload();
             }
-        }
+        };
 
-        document.addEventListener('DOMContentLoaded', () => { initAddress(); updateTotalPrice(); });
+        window.saveUserInfo = async function () {
+            try {
+                await fetch('/save-profile', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        fullName: document.getElementById('fullName').value,
+                        phone: document.getElementById('phone').value,
+                        address: getFullAddress()
+                    })
+                });
+                alert("Đã lưu thông tin!");
+            } catch (e) { alert("Lỗi lưu"); }
+        };
+
+        // --- CHẠY KHI TRANG LOAD ---
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProvinces(); // Bắt đầu chuỗi tự động load địa chỉ
+            updateTotalPrice();
+        });
     </script>
 </body>
 </html>

@@ -1,162 +1,101 @@
 ﻿const Order = require('../Models/order');
 const Product = require('../Models/product');
+const Log = require('../Models/log');
 
 // 1. Logic hiển thị trang danh sách & Thống kê (ĐÃ NÂNG CẤP BỘ LỌC)
-exports.getRevenuePage = async (req, res) => {
-    try {
-        // --- A. TÍNH TOÁN THỐNG KÊ (GIỮ NGUYÊN) ---
-        // Phần này tính tổng doanh thu Hôm nay & Tháng này để hiển thị lên 4 cái thẻ trên cùng
-        // Số liệu này KHÔNG bị ảnh hưởng bởi bộ lọc (để Admin luôn nắm được tình hình chung)
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-        const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-        const daysInMonth = endOfMonth.getDate();
-
-        // Tính doanh thu hôm nay
-        const ordersToday = await Order.find({
-            createdAt: { $gte: today },
-            status: 'delivered', // Hoặc 'completed' tùy DB của bạn, ở đây bạn dùng 'delivered'
-            paymentStatus: 'Paid' // Chỉ tính đơn đã trả tiền
-        });
-        const dailyRevenue = ordersToday.reduce((sum, o) => sum + (o.totalPrice || 0), 0);
-
-        // Tính doanh thu tháng này
-        const ordersMonth = await Order.find({
-            createdAt: { $gte: startOfMonth },
-            status: 'delivered',
-            paymentStatus: 'Paid'
-        });
-        const monthlyRevenue = ordersMonth.reduce((sum, o) => sum + (o.totalPrice || 0), 0);
-
-        const pendingCount = await Order.countDocuments({ status: 'pending' });
-        const completedCount = await Order.countDocuments({ status: 'delivered' });
-
-        // --- B. XỬ LÝ BỘ LỌC TÌM KIẾM (PHẦN MỚI) ---
-        const { keyword, date, status } = req.query;
-        let filter = {};
-
-        // 1. Lọc theo Trạng thái
-        if (status) {
-            filter.status = status;
-        }
-
-        // 2. Lọc theo Ngày
-        if (date) {
-            const startDate = new Date(date);
-            const endDate = new Date(date);
-            endDate.setHours(23, 59, 59, 999);
-            filter.createdAt = {
-                $gte: startDate,
-                $lte: endDate
-            };
-        }
-
-        // 3. Lọc theo Từ khóa (Mã đơn, Tên, SĐT, Email)
-        if (keyword) {
-            const regex = new RegExp(keyword, 'i'); // 'i' là không phân biệt hoa thường
-
-            let orConditions = [
-                { 'userInfo.fullName': regex },
-                { 'userInfo.phone': regex },
-                { 'userInfo.email': regex }
-            ];
-
-            // Nếu keyword là số -> Tìm theo orderCode
-            if (!isNaN(keyword)) {
-                orConditions.push({ orderCode: Number(keyword) });
-            }
-
-            filter.$or = orConditions;
-        }
-
-        // --- C. TRUY VẤN DỮ LIỆU ĐỂ HIỂN THỊ BẢNG ---
-        // Lấy danh sách đơn hàng dựa trên bộ lọc `filter`
-        const orders = await Order.find(filter).sort({ createdAt: -1 });
-
-        // --- D. DỮ LIỆU BIỂU ĐỒ (MẶC ĐỊNH THÁNG NÀY) ---
-        const chartLabels = Array.from({ length: daysInMonth }, (_, i) => `${i + 1}`);
-        const chartData = new Array(daysInMonth).fill(0);
-
-        ordersMonth.forEach(order => {
-            const d = new Date(order.createdAt);
-            const day = d.getDate();
-            chartData[day - 1] += (order.totalPrice || 0);
-        });
-
-        // --- E. RENDER VIEW ---
-        // Lưu ý: Tên file view phải khớp với file bạn tạo (admin/order.ejs)
-        res.render('admin/DonHangVaDoanhThu', {
-            orders,
-            stats: { dailyRevenue, monthlyRevenue, pendingCount, completedCount },
-            chartData: JSON.stringify(chartData),
-            chartLabels: JSON.stringify(chartLabels),
-            // Truyền lại queryData để giữ giá trị trong ô input sau khi reload
-            queryData: req.query
-        });
-
-    } catch (err) {
-        console.error("Lỗi getRevenuePage:", err);
-        res.status(500).send("Lỗi server");
-    }
-};
 
 // 2. Logic cập nhật trạng thái & Hoàn kho (GIỮ NGUYÊN)
 exports.updateOrderStatus = async (req, res) => {
     try {
         const orderId = req.params.id;
-        const newStatus = req.body.status;
+        const newStatus = req.body.status; // Trạng thái muốn chuyển tới
         const order = await Order.findById(orderId);
 
         if (!order) return res.status(404).send("Không tìm thấy đơn hàng");
 
-        // 🔥 1. LOGIC QUAN TRỌNG: CHẶN HỦY NẾU ĐÃ TRẢ TIỀN MÀ CHƯA HOÀN TIỀN
-        // (Kiểm tra kỹ cả chữ hoa/thường)
-        if (newStatus === 'cancelled' && order.paymentStatus === 'Paid') {
-            return res.send(`
-                <script>
-                    alert("❌ KHÔNG THỂ HỦY ĐƠN!\\n\\nKhách hàng ĐÃ THANH TOÁN (Paid).\\nBạn VUI LÒNG HOÀN TIỀN (chuyển sang 'Đã hoàn tiền') trước khi hủy đơn hàng này.");
-                    window.history.back();
-                </script>
-            `);
+        // 1. CHẶN NẾU ĐƠN ĐÃ CHẾT (Final State)
+        if (['Cancelled', 'Returned'].includes(order.status)) {
+            return res.send(`<script>alert('❌ Đơn đã kết thúc (${order.status}). Không thể sửa!'); window.history.back();</script>`);
+        }
+        if (order.paymentStatus === 'Refund') {
+            return res.send(`<script>alert('⛔ Đơn đã Hoàn tiền. Không thể thao tác!'); window.history.back();</script>`);
+        }
+        if (order.paymentStatus === 'Unpaid'&& newStatus!=='Cancelled') {
+            return res.send(`<script>alert('⛔ Đơn hàng chưa thanh toán. Không thể thao tác!'); window.history.back();</script>`);
         }
 
-        // 2. Chặn giao hàng nếu chưa trả tiền
-        if (newStatus !== 'cancelled' && newStatus !== 'returned' && order.paymentStatus !== 'Paid') {
-            return res.send(`
-                <script>
-                    alert('⛔ CHẶN THAO TÁC!\\nĐơn chưa thanh toán thì không được giao hàng.');
-                    window.history.back();
-                </script>
-            `);
+        // 2. LOGIC CHUYỂN SANG "SHIPPING" (ĐANG GIAO)
+        if (newStatus === 'Shipping') {
+            // Nếu là GHN: Không cho chuyển tay (Phải dùng nút Tạo đơn GHN)
+            if (order.shippingMethod === 'GHN' && !order.ghn_order_code) {
+                return res.send(`<script>alert('⛔ Với đơn GHN, vui lòng bấm nút "Tạo đơn GHN" để lấy mã vận đơn trước!'); window.history.back();</script>`);
+            }
+            // Nếu là LOCAL: Cho phép chuyển
         }
 
-        // 3. Chặn sửa đơn đã xong
-        if (order.status === 'cancelled' || order.status === 'returned') {
-            return res.send(`<script>alert('❌ Đơn này đã đóng, không thể sửa nữa.'); window.history.back();</script>`);
+        // 3. LOGIC CHUYỂN SANG "COMPLETED" (HOÀN THÀNH - CHỈ LOCAL)
+        if (newStatus === 'Completed') {
+            // Nếu là GHN: Không cho chuyển tay (Chờ Webhook hoặc Shipper cập nhật)
+            if (order.shippingMethod === 'GHN') {
+                return res.send(`<script>alert('⛔ Đơn GHN sẽ tự động hoàn thành khi Shipper giao xong via Webhook.'); window.history.back();</script>`);
+            }
+
+            // Nếu là LOCAL: Xử lý thanh toán COD
+            if (order.paymentMethod === 'COD' && order.paymentStatus !== 'Paid') {
+                order.paymentStatus = 'Paid';
+                order.payment_info = { method: 'COD_LOCAL', status: 'Paid', amount: order.totalPrice, date: new Date() };
+                console.log(`💰 Auto-Paid cho đơn Local #${order.orderCode}`);
+            }
         }
 
-        // 4. LOGIC HOÀN KHO (Khi Hủy hoặc Trả hàng)
-        if ((newStatus === 'cancelled' || newStatus === 'returned') && order.status !== 'cancelled') {
+        // 4. LOGIC "CANCELLED" (HỦY ĐƠN)
+        if (newStatus === 'Cancelled') {
+            // Chặn nếu đang đi giao
+            if (['Shipping', 'Completed'].includes(order.status)) {
+                return res.send(`<script>alert('⛔ Đơn đang giao hoặc đã xong. Không thể Hủy ngang! Hãy dùng chức năng Trả hàng.'); window.history.back();</script>`);
+            }
+            // Chặn nếu đã trả tiền (Bắt phải dùng nút Refund bên cột Thanh toán)
+            if (order.paymentStatus === 'Paid') {
+                return res.send(`<script>alert('⛔ Khách đã thanh toán! Vui lòng thao tác bên cột "Thanh toán" -> chọn "Đã hoàn tiền" để hệ thống tự hủy và hoàn kho.'); window.history.back();</script>`);
+            }
+        }
+
+        // 5. LOGIC "RETURNED" (KHÁCH TRẢ HÀNG / GIAO THẤT BẠI)
+        if (newStatus === 'Returned') {
+            // Chỉ cho phép khi đang Shipping hoặc đã Completed
+            if (!['Shipping', 'Completed'].includes(order.status)) {
+                return res.send(`<script>alert('⛔ Chỉ hoàn hàng khi đơn Đang giao hoặc Đã giao.'); window.history.back();</script>`);
+            }
+            // Nếu đã trả tiền -> Cảnh báo (Admin phải tự quyết định có Refund tiền không)
+            // Ở đây ta cho phép đổi trạng thái để hoàn kho, nhưng tiền thì Admin xử lý sau
+        }
+
+        // --- 6. XỬ LÝ HOÀN KHO (RESTOCK) ---
+        // Áp dụng cho Cancelled và Returned
+        if (newStatus === 'Cancelled' || newStatus === 'Returned') {
+            console.log("🔄 Đang hoàn kho cho đơn:", order.orderCode);
             for (const item of order.items) {
                 const product = await Product.findById(item.productId);
                 if (product) {
                     const variant = product.variants.find(v => v.size === item.size);
-                    if (variant) {
-                        variant.stock += item.quantity;
-                        await product.save();
-                    }
+                    if (variant) variant.stock += item.quantity;
+                    await product.save();
                 }
             }
         }
 
+        // --- 7. LƯU DATABASE ---
         order.status = newStatus;
         await order.save();
+        await Log.create({
+            type: 'ORDER',
+            message: `Admin đã cập nhật đơn hàng #${order.orderCode} sang trạng thái: ${order.status}`
+        });
         res.redirect('/admin/orders');
 
+
     } catch (err) {
-        console.error("Lỗi updateOrderStatus:", err);
+        console.error(err);
         res.status(500).send("Lỗi hệ thống");
     }
 };
@@ -165,6 +104,7 @@ exports.getRevenuePage = async (req, res) => {
     try {
         // --- A. TÍNH TOÁN THỐNG KÊ (ĐÃ CẬP NHẬT LOGIC MỚI) ---
         const today = new Date();
+        today.setHours(today.getHours() + 7); // Chuyển về giờ VN
         today.setHours(0, 0, 0, 0);
 
         const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -248,36 +188,45 @@ exports.updatePaymentStatus = async (req, res) => {
     try {
         const orderId = req.params.id;
         const { paymentStatus } = req.body;
-
         const order = await Order.findById(orderId);
+
         if (!order) return res.status(404).send("Không tìm thấy đơn hàng");
 
-        // Chặn sửa nếu đã Refund rồi (như bài trước)
-        if (order.paymentStatus === 'Refund') {
-            return res.send(`
-                <script>
-                    alert("❌ Đơn này đã hoàn tiền xong, không thể chỉnh sửa trạng thái thanh toán nữa.");
-                    window.history.back();
-                </script>
-            `);
+        const oldPayStatus = order.paymentStatus; // 🔥 Khai báo biến này ở đây
+
+        if (oldPayStatus === 'Refund') {
+            return res.send(`<script>alert("❌ Đơn này đã hoàn tiền xong."); window.history.back();</script>`);
         }
 
-        // Cập nhật trạng thái thanh toán mới
         order.paymentStatus = paymentStatus;
 
-        // 🔥 LOGIC TỰ ĐỘNG: REFUND => HỦY ĐƠN
-        // Nếu chọn "Hoàn tiền", hệ thống tự hiểu đơn này coi như bỏ -> Cancelled
         if (paymentStatus === 'Refund') {
-            order.status = 'cancelled';
-        }
-        if (paymentStatus === 'Paid') {
-            order.status = 'pending';
-        }
-        await order.save();
-        res.redirect('/admin/orders');
+            const oldStatus = order.status;
+            order.status = 'Returned';
 
+            if (oldStatus !== 'Cancelled' && oldStatus !== 'Returned') {
+                for (const item of order.items) {
+                    const product = await Product.findById(item.productId);
+                    if (product) {
+                        const variant = product.variants.find(v => v.size === item.size);
+                        if (variant) variant.stock += item.quantity;
+                        await product.save();
+                    }
+                }
+            }
+        }
+
+        await order.save();
+
+        // Ghi Log lịch sử
+        await Log.create({
+            type: 'PAYMENT',
+            message: `Cập nhật THANH TOÁN #${order.orderCode}: [${oldPayStatus}] -> [${paymentStatus}]`
+        });
+
+        res.redirect('/admin/orders');
     } catch (err) {
         console.error(err);
-        res.status(500).send("Lỗi cập nhật thanh toán");
+        res.status(500).send("Lỗi cập nhật");
     }
 };

@@ -25,6 +25,7 @@
     "mongoose": "^8.20.4",
     "multer": "^2.0.2",
     "multer-storage-cloudinary": "^4.0.0",
+    "node-telegram-bot-api": "^0.67.0",
     "nodemailer": "^7.0.12",
     "socket.io": "^4.8.3"
   }

@@ -14,7 +14,8 @@ exports.getHomePage = async (req, res) => {
             isHidden: false   // Và sản phẩm đó KHÔNG ĐƯỢC BỊ ẨN
         })
             .sort({ updatedAt: -1 })
-            .limit(8);
+            .limit(8)
+            .lean();
 
         let content = await PageContent.findOne();
 
@@ -39,6 +40,7 @@ exports.getHomePage = async (req, res) => {
                     { name: 'MC C', image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400' }
                 ]
             });
+            await content.save();
         }
         res.render('user/BinStudio', { products: products, content: content });
 
@@ -60,7 +62,7 @@ exports.getCategoryPage = async (req, res) => {
         const products = await Product.find({
             category: path, // Lưu ý: Đảm bảo database lưu 'vest', 'quan' khớp với url
             isHidden: { $ne: true }
-        });
+        }).lean();
 
         // Render đúng file view (Viết hoa chữ cái đầu: vest -> Vest)
         const viewName = path.charAt(0).toUpperCase() + path.slice(1);
@@ -104,7 +106,7 @@ exports.getChangePassword = (req, res) => res.render('user/Doimatkhau', {
 exports.getCart = async (req, res) => {
     try {
         if (!req.session.user) return res.redirect('/login');
-        const cart = await Cart.findOne({ userId: req.session.user.id }).populate('items.productId');
+        const cart = await Cart.findOne({ userId: req.session.user.id }).populate('items.productId').lean();
         res.render('user/cart', { cart: cart });
     } catch (err) {
         console.error("Lỗi giỏ hàng:", err);
@@ -153,7 +155,7 @@ exports.getProductDetail = async (req, res) => {
 exports.getOrders = async (req, res) => {
     try {
         if (!req.session.user) return res.redirect('/login');
-        const orders = await Order.find({ userId: req.session.user.id }).sort({ createdAt: -1 });
+        const orders = await Order.find({ userId: req.session.user.id }).sort({ createdAt: -1 }).lean();
         res.render('user/order', { orders: orders });
     } catch (err) {
         console.error("Lỗi đơn hàng:", err);

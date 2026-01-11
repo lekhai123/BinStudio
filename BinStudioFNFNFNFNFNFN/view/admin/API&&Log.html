@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BinStudio - Cấu hình API & Log</title>
+    <title>BinStudio - Cấu hình & Nhật ký</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
     <style>
         :root {
-            --accent: #d1b06b; /* Màu vàng đồng thương hiệu */
+            --accent: #d1b06b;
             --bg: #f4f7f6;
             --sidebar-bg: #1a1a1a;
             --text-muted: #bbb;
@@ -20,14 +22,13 @@
             font-family: 'Segoe UI', sans-serif;
         }
 
-        /* Khung Layout chính */
         .admin-layout {
             display: flex;
             min-height: 100vh;
             background: var(--bg);
         }
 
-        /* SIDEBAR */
+        /* SIDEBAR (Giữ nguyên) */
         .sidebar {
             width: 260px;
             background: var(--sidebar-bg);
@@ -47,15 +48,13 @@
                 font-family: 'Montserrat', sans-serif;
                 font-weight: 900;
                 font-size: 24px;
-                color: var(--accent) !important;
+                color: var(--accent);
                 text-transform: uppercase;
                 letter-spacing: 1px;
             }
 
         .sidebar-menu {
             list-style: none;
-            padding: 0;
-            margin: 0;
         }
 
             .sidebar-menu li {
@@ -84,14 +83,13 @@
                     border-left: 4px solid var(--accent);
                 }
 
-        /* NỘI DUNG CHÍNH */
+        /* MAIN CONTENT */
         .main-content {
             flex: 1;
             padding: 40px;
             overflow-y: auto;
         }
 
-        /* Section Card */
         .config-section {
             background: white;
             padding: 30px;
@@ -108,6 +106,7 @@
                 gap: 10px;
             }
 
+        /* Form & Config Group (Giữ nguyên các style cũ cho phần API) */
         .config-group {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -120,14 +119,6 @@
             border-radius: 10px;
         }
 
-            .api-item h4 {
-                margin-bottom: 15px;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
-
-        /* Toggle Switch */
         .switch {
             position: relative;
             display: inline-block;
@@ -153,25 +144,25 @@
             border-radius: 20px;
         }
 
+            .slider:before {
+                position: absolute;
+                content: "";
+                height: 14px;
+                width: 14px;
+                left: 3px;
+                bottom: 3px;
+                background-color: white;
+                transition: .4s;
+                border-radius: 50%;
+            }
+
         input:checked + .slider {
             background-color: var(--accent);
         }
 
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 14px;
-            width: 14px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-
-        input:checked + .slider:before {
-            transform: translateX(20px);
-        }
+            input:checked + .slider:before {
+                transform: translateX(20px);
+            }
 
         input[type="text"], input[type="password"], select {
             width: 100%;
@@ -179,41 +170,8 @@
             margin-top: 10px;
             border: 1px solid #ddd;
             border-radius: 6px;
-            font-size: 14px;
             outline: none;
         }
-
-        input:focus {
-            border-color: var(--accent);
-        }
-
-        /* Log Terminal View */
-        .log-viewer {
-            background: #1a1a1a;
-            color: #2ecc71;
-            padding: 20px;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
-            height: 300px;
-            overflow-y: auto;
-            line-height: 1.6;
-            border: 5px solid #333;
-        }
-
-        .log-error {
-            color: #ff4d4d;
-        }
-
-        .log-warning {
-            color: #f1c40f;
-        }
-
-        .log-payment {
-            color: #d1b06b;
-            font-weight: bold;
-        }
-        /* Thêm style cho Payment */
 
         .btn-save {
             margin-top: 20px;
@@ -224,23 +182,118 @@
             border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
-            transition: 0.3s;
             width: 100%;
+            transition: 0.3s;
         }
 
             .btn-save:hover {
                 background: #000;
                 transform: translateY(-2px);
             }
+
+        /* --- NEW: LOG FILTER BAR --- */
+        .log-filter-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .filter-item label {
+            font-size: 12px;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .filter-input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+            min-width: 150px;
+        }
+
+        /* --- NEW: LOG TABLE STYLE --- */
+        .log-table-container {
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 8px;
+        }
+
+        .log-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+            .log-table th {
+                background: #f8f9fa;
+                padding: 12px 15px;
+                text-align: left;
+                position: sticky;
+                top: 0;
+                z-index: 10;
+                border-bottom: 2px solid #eee;
+            }
+
+            .log-table td {
+                padding: 12px 15px;
+                border-bottom: 1px solid #eee;
+                color: #444;
+            }
+
+            .log-table tr:hover {
+                background: #fdfdfd;
+            }
+
+        /* Badge Log Type */
+        .badge-log {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .type-PAYMENT {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+
+        .type-ORDER {
+            background: #e3f2fd;
+            color: #1565c0;
+            border: 1px solid #bbdefb;
+        }
+
+        .type-ADMIN {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+        /* Admin thao tác */
+        .type-ERROR {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+
+        .type-SYSTEM {
+            background: #f3f3f3;
+            color: #555;
+            border: 1px solid #ddd;
+        }
     </style>
 </head>
 <body>
 
     <div class="admin-layout">
         <aside class="sidebar">
-            <div class="sidebar-header">
-                <h2>BinStudio</h2>
-            </div>
+            <div class="sidebar-header"><h2>BinStudio</h2></div>
             <ul class="sidebar-menu">
                 <li><a href="/admin">📊 Bảng điều khiển</a></li>
                 <li><a href="/admin/products">📦 Quản lý Sản phẩm</a></li>
@@ -248,104 +301,71 @@
                 <li><a href="/admin/orders">🧾 Đơn hàng & Doanh thu</a></li>
                 <li><a href="/admin/config" class="active">⚙️ Cấu hình API và Log</a></li>
                 <li><a href="/admin/homepage" style="color: white; font-weight: bold;">🏠 Chỉnh sửa Trang chủ</a></li>
-
                 <li><a href="/" style="color: var(--accent); margin-top: 20px; border-top: 1px solid #333;">🏠 Quay lại Shop</a></li>
             </ul>
         </aside>
 
         <main class="main-content">
-            <h1 style="margin-bottom: 30px;">Cấu hình Hệ thống & Kết nối API</h1>
+            <h1 style="margin-bottom: 30px;">Nhật ký hệ thống</h1>
 
-            <form action="/admin/config/save" method="POST">
-
-                <div class="config-section">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                        <h3>💳 Cổng thanh toán trực tuyến</h3>
-                        <small style="color:#888;">Trạng thái đơn hàng sẽ tự động cập nhật khi thanh toán thành công</small>
-                    </div>
-                    <div class="config-group">
-                        <div class="api-item">
-                            <h4>
-                                Ví điện tử Momo
-                                <label class="switch">
-                                    <input type="checkbox" name="momo_on" <%= config.momo.isEnabled ? 'checked' : '' %>>
-                                    <span class="slider"></span>
-                                </label>
-                            </h4>
-                            <input type="text" name="momo_code" placeholder="Partner Code" value="<%= config.momo.partnerCode %>">
-                            <input type="password" name="momo_key" placeholder="Access Key" value="<%= config.momo.accessKey %>">
-                        </div>
-
-                        <div class="api-item">
-                            <h4>
-                                Ngân hàng (VietQR)
-                                <label class="switch">
-                                    <input type="checkbox" name="vqr_on" <%= config.vietqr.isEnabled ? 'checked' : '' %>>
-                                    <span class="slider"></span>
-                                </label>
-                            </h4>
-                            <input type="text" name="vqr_acc" placeholder="Số tài khoản thụ hưởng" value="<%= config.vietqr.bankAccount %>">
-                            <select name="vqr_bank">
-                                <option value="Vietcombank" <%= config.vietqr.bankName === 'Vietcombank' ? 'selected' : '' %>>Vietcombank</option>
-                                <option value="MB Bank" <%= config.vietqr.bankName === 'MB Bank' ? 'selected' : '' %>>MB Bank</option>
-                                <option value="Techcombank" <%= config.vietqr.bankName === 'Techcombank' ? 'selected' : '' %>>Techcombank</option>
-                                <option value="ACB" <%= config.vietqr.bankName === 'ACB' ? 'selected' : '' %>>ACB</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="config-section">
-                    <h3>🚚 Đơn vị vận chuyển liên kết</h3>
-                    <div class="config-group">
-                        <div class="api-item">
-                            <h4>
-                                Giao Hàng Nhanh (GHN)
-                                <label class="switch">
-                                    <input type="checkbox" name="ghn_on" <%= config.ghn.isEnabled ? 'checked' : '' %>>
-                                    <span class="slider"></span>
-                                </label>
-                            </h4>
-                            <input type="text" name="ghn_token" placeholder="API Token kết nối" value="<%= config.ghn.token %>">
-                            <input type="text" name="ghn_id" placeholder="Shop ID" value="<%= config.ghn.shopId %>">
-                        </div>
-
-                        <div class="api-item">
-                            <h4>
-                                GHTK / GrabExpress
-                                <label class="switch"><input type="checkbox" disabled><span class="slider"></span></label>
-                            </h4>
-                            <input type="text" placeholder="Tính năng đang phát triển..." disabled style="background: #eee;">
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn-save">LƯU CẤU HÌNH HỆ THỐNG</button>
-                </div>
-
-            </form>
 
             <div class="config-section" id="logs">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h3>🛠️ Nhật ký hệ thống (System Logs)</h3>
-                    <div>
-                        <form action="/admin/config/logs/clear" method="POST" style="display: inline;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử không?');">
-                            <button type="submit" style="font-size:12px; padding:5px 12px; color:red; cursor:pointer; background:none; border:1px solid red; border-radius:4px;">Xóa lịch sử</button>
-                        </form>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                    <h3>🛠️ Nhật ký hoạt động (System Logs)</h3>
+                    <form action="/admin/config/logs/clear" method="POST" onsubmit="return confirm('Xóa sạch lịch sử?');">
+                        <button type="submit" style="color:red; border:1px solid red; background:none; padding:5px 10px; border-radius:4px; cursor:pointer;">
+                            <i class="fas fa-trash"></i> Xóa lịch sử
+                        </button>
+                    </form>
+                </div>
+
+                <div class="log-filter-bar">
+                    <div class="filter-item">
+                        <label>Lọc theo loại:</label>
+                        <select id="filterType" class="filter-input" onchange="filterLogs()">
+                            <option value="ALL">Tất cả</option>
+                            <option value="ADMIN">👮 Admin Thao tác</option>
+                            <option value="ORDER">📦 Đơn hàng</option>
+                            <option value="PAYMENT">💰 Thanh toán</option>
+
+                            <option value="ERROR">❌ Lỗi</option>
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <label>Chọn ngày:</label>
+                        <input type="date" id="filterDate" class="filter-input" onchange="filterLogs()">
+                    </div>
+                    <div class="filter-item">
+                        <label>Tìm kiếm nội dung:</label>
+                        <input type="text" id="filterText" class="filter-input" placeholder="Nhập từ khóa..." onkeyup="filterLogs()">
                     </div>
                 </div>
 
-                <div class="log-viewer" id="logContainer">
-                    <% if (logs && logs.length > 0) { %>
-                    <% logs.forEach(log => { %>
-                    <div class="<%= log.type === 'ERROR' ? 'log-error' : (log.type === 'PAYMENT' ? 'log-payment' : '') %>">
-                        [<%= log.createdAt.toLocaleString('vi-VN') %>]
-                        <span style="font-weight:bold;"><%= log.type %>:</span>
-                        <%= log.message %>
-                    </div>
-                    <% }) %>
-                    <% } else { %>
-                    <div style="color: #666; font-style: italic;">Chưa có nhật ký nào được ghi lại.</div>
-                    <% } %>
+                <div class="log-table-container">
+                    <table class="log-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 150px;">Thời gian</th>
+                                <th style="width: 120px;">Loại</th>
+                                <th>Nội dung chi tiết</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logTableBody">
+                            <% if (logs && logs.length > 0) { %>
+                            <% logs.forEach(log => { %>
+                            <tr class="log-row" data-type="<%= log.type %>" data-date="<%= new Date(log.createdAt).toISOString().split('T')[0] %>">
+                                <td><%= new Date(log.createdAt).toLocaleString('vi-VN') %></td>
+                                <td>
+                                    <span class="badge-log type-<%= log.type %>"><%= log.type %></span>
+                                </td>
+                                <td><%= log.message %></td>
+                            </tr>
+                            <% }) %>
+                            <% } else { %>
+                            <tr><td colspan="3" style="text-align:center; padding: 20px;">Chưa có dữ liệu log.</td></tr>
+                            <% } %>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </main>
@@ -353,41 +373,59 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        // Kiểm tra xem Socket.io có được load không (đề phòng chưa cài)
+        // 1. Hàm lọc Log (Client-side)
+        function filterLogs() {
+            const type = document.getElementById('filterType').value;
+            const date = document.getElementById('filterDate').value;
+            const text = document.getElementById('filterText').value.toLowerCase();
+
+            const rows = document.querySelectorAll('.log-row');
+
+            rows.forEach(row => {
+                const rowType = row.getAttribute('data-type');
+                const rowDate = row.getAttribute('data-date');
+                const rowContent = row.innerText.toLowerCase();
+
+                let show = true;
+
+                if (type !== 'ALL' && rowType !== type) show = false;
+                if (date && rowDate !== date) show = false;
+                if (text && !rowContent.includes(text)) show = false;
+
+                row.style.display = show ? '' : 'none';
+            });
+        }
+
+        // 2. Socket.io nhận Log mới realtime
         if (typeof io !== 'undefined') {
             const socket = io();
-            const container = document.getElementById('logContainer');
+            const tbody = document.getElementById('logTableBody');
 
             socket.on('new-log', (log) => {
-                const div = document.createElement('div');
+                const tr = document.createElement('tr');
+                tr.className = 'log-row';
+                tr.setAttribute('data-type', log.type);
 
-                // Gán class màu sắc dựa trên loại log
-                if (log.type === 'ERROR') div.className = 'log-error';
-                else if (log.type === 'PAYMENT') div.className = 'log-payment';
+                // Format ngày chuẩn ISO yyyy-mm-dd để lọc
+                const dateObj = new Date(log.createdAt);
+                const isoDate = dateObj.toISOString().split('T')[0];
+                tr.setAttribute('data-date', isoDate);
 
-                // Format thời gian
-                const timeString = new Date(log.createdAt).toLocaleString('vi-VN');
+                const timeStr = dateObj.toLocaleString('vi-VN');
 
-                div.innerHTML = `[${timeString}] <span style="font-weight:bold;">${log.type}:</span> ${log.message}`;
+                tr.innerHTML = `
+                        <td>${timeStr}</td>
+                        <td><span class="badge-log type-${log.type}">${log.type}</span></td>
+                        <td>${log.message}</td>
+                    `;
 
-                // Hiệu ứng nháy nhẹ khi có log mới
-                div.style.animation = "highlight 1s";
+                // Hiệu ứng nháy vàng khi mới thêm
+                tr.style.backgroundColor = "#fffde7";
+                setTimeout(() => { tr.style.backgroundColor = ""; }, 2000);
 
-                container.prepend(div); // Đẩy log mới lên đầu
+                tbody.prepend(tr); // Thêm lên đầu bảng
             });
         }
     </script>
-
-    <style>
-        @keyframes highlight {
-            0% {
-                background-color: #333;
-            }
-
-            100% {
-                background-color: transparent;
-            }
-        }
-    </style>
 </body>
 </html>

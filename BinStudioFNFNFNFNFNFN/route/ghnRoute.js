@@ -6,7 +6,7 @@ const ghnService = require('../Service/ghnService');
 router.get('/api/ghn/provinces', async (req, res) => {
     try {
         const response = await ghnService.getProvinces();
-        res.json(response.data.data);
+        res.json(response.data);
     } catch (err) {
         // In lỗi chi tiết ra console để kiểm tra
         console.error("Chi tiết lỗi GHN:", err.response ? err.response.data : err.message);
@@ -20,7 +20,7 @@ router.get('/api/ghn/provinces', async (req, res) => {
 router.get('/api/ghn/districts/:provinceId', async (req, res) => {
     try {
         const response = await ghnService.getDistricts(req.params.provinceId);
-        res.json(response.data.data);
+        res.json(response.data);
     } catch (err) { res.status(500).send("Lỗi lấy Quận"); }
 });
 
@@ -28,8 +28,10 @@ router.get('/api/ghn/districts/:provinceId', async (req, res) => {
 router.get('/api/ghn/wards/:districtId', async (req, res) => {
     try {
         const response = await ghnService.getWards(req.params.districtId);
-        res.json(response.data.data);
+        res.json(response.data);
     } catch (err) { res.status(500).send("Lỗi lấy Phường"); }
+
+
 });
 
 module.exports = router;

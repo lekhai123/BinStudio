@@ -43,6 +43,124 @@
         
         /* Tìm kiếm */
         .search-box { padding: 10px 15px; border: 1px solid #ddd; border-radius: 8px; width: 300px; margin-bottom: 20px; outline: none; }
+
+        /* --- Style Mới Thêm --- */
+
+        /* Badge Vai trò */
+        .badge-admin {
+            background: #e3f2fd;
+            color: #0d47a1;
+            border: 1px solid #bbdefb;
+        }
+
+        .badge-user {
+            background: #f3f3f3;
+            color: #555;
+            border: 1px solid #ddd;
+        }
+
+        /* Nút Nâng/Hạ quyền */
+        .btn-role {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+            margin-right: 5px;
+        }
+
+            .btn-role:hover {
+                background: #ffeeba;
+            }
+
+        /* Nút Đổi MK */
+        .btn-pass {
+            background: #e0f7fa;
+            color: #006064;
+            border: 1px solid #b2ebf2;
+            margin-right: 5px;
+        }
+
+            .btn-pass:hover {
+                background: #b2ebf2;
+            }
+
+        /* MODAL (Popup đổi mật khẩu) */
+        .modal {
+            display: none; /* Ẩn mặc định */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 400px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            animation: slideDown 0.3s;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal h3 {
+            margin-bottom: 20px;
+            color: var(--accent);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+            .form-group label {
+                display: block;
+                margin-bottom: 5px;
+                font-weight: bold;
+                font-size: 13px;
+            }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .modal-actions {
+            text-align: right;
+            margin-top: 20px;
+        }
+
+        .btn-close {
+            background: #eee;
+            color: #333;
+            margin-right: 10px;
+        }
+
+        .btn-save {
+            background: var(--accent);
+            color: white;
+            border: none;
+        }
+
+            .btn-save:hover {
+                background: #c5a059;
+            }
     </style>
 </head>
 <body>
@@ -67,38 +185,72 @@
         <h1 style="margin-bottom: 30px;">Quản lý tài khoản khách hàng</h1>
 
         <div class="card">
-            <input type="text" id="userSearch" class="search-box" placeholder="🔍 Tìm tên hoặc email...">            
+            <input type="text" id="userSearch" class="search-box" placeholder="🔍 Tìm tên hoặc email...">
             <table class="user-table">
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Họ tên</th>
-                        <th>Email</th>
+                        <th>Họ tên / Email</th>
+                        <th>Vai trò</th>
                         <th>Ngày tham gia</th>
                         <th>Trạng thái</th>
-                        <th>Hành động</th>
+                        <th style="width: 280px;">Hành động</th>
                     </tr>
                 </thead>
                 <tbody id="userTableBody">
                     <% users.forEach(u => { %>
                     <tr class="user-row">
                         <td>#<%= u._id.toString().slice(-4).toUpperCase() %></td>
-                        <td class="user-name"><b><%= u.fullName || 'Chưa cập nhật' %></b></td>
-                        <td class="user-email"><%= u.email %></td>
+
+                        <td>
+                            <div class="user-name"><b><%= u.fullName || 'No Name' %></b></div>
+                            <small class="user-email" style="color: #888;"><%= u.email %></small>
+                        </td>
+
+                        <td>
+                            <% if (u.role ==='admin') { %>
+                            <span class="badge badge-admin">👑 Admin</span>
+                            <% } else { %>
+                            <span class="badge badge-user">Khách hàng</span>
+                            <% } %>
+                        </td>
+
                         <td><%= u.createdAt ? u.createdAt.toLocaleDateString('vi-VN') : 'N/A' %></td>
+
                         <td>
                             <span class="badge <%= u.isLocked ? 'badge-blocked' : 'badge-active' %>">
                                 <%= u.isLocked ? 'Đã khóa' : 'Hoạt động' %>
                             </span>
                         </td>
+
                         <td>
+                            <button type="button" class="btn-status btn-pass"
+                                    onclick="openPassModal('<%= u._id %>', '<%= u.fullName || u.email %>')">
+                                <i class="fas fa-key"></i> Đổi MK
+                            </button>
+
+                            <form action="/admin/users/toggle-role/<%= u._id %>" method="POST" style="display:inline;">
+                                <% if (u.role==='admin') { %>
+                                <button type="submit" class="btn-status btn-role" title="Hạ xuống User"
+                                        onclick="return confirm('Bạn chắc chắn muốn hạ quyền Admin của <%= u.fullName %>?')">
+                                    Hạ quyền
+                                </button>
+                                <% } else { %>
+                                <button type="submit" class="btn-status btn-role" title="Nâng lên Admin"
+                                        style="background: #e3f2fd; color: #1565c0; border-color: #bbdefb;"
+                                        onclick="return confirm('Cấp quyền Admin cho <%= u.fullName %>?')">
+                                    Nâng quyền
+                                </button>
+                                <% } %>
+                            </form>
+
                             <form action="/admin/users/toggle-lock/<%= u._id %>" method="POST" style="display:inline;">
                                 <% if (u.isLocked) { %>
-                                <button type="submit" class="btn-status btn-unlock">Mở khóa</button>
+                                <button type="submit" class="btn-status btn-unlock">Mở</button>
                                 <% } else { %>
                                 <button type="submit" class="btn-status btn-lock"
-                                        onclick="return confirm('Bạn có chắc chắn muốn khóa tài khoản <%= u.email %>?')">
-                                    Khóa TK
+                                        onclick="return confirm('Khóa tài khoản này?')">
+                                    Khóa
                                 </button>
                                 <% } %>
                             </form>
@@ -107,6 +259,27 @@
                     <% }) %>
                 </tbody>
             </table>
+
+            <div id="passwordModal" class="modal">
+                <div class="modal-content">
+                    <h3>Đổi mật khẩu người dùng</h3>
+                    <p style="margin-bottom: 15px; font-size: 13px; color: #666;">Đang đổi mật khẩu cho: <b id="modalUserName">...</b></p>
+
+                    <form id="changePassForm" action="/admin/users/change-password" method="POST">
+                        <input type="hidden" name="userId" id="modalUserId">
+
+                        <div class="form-group">
+                            <label>Mật khẩu mới</label>
+                            <input type="password" name="newPassword" class="form-control" required minlength="8" placeholder="Nhập mật khẩu mới...">
+                        </div>
+
+                        <div class="modal-actions">
+                            <button type="button" class="btn-status btn-close" onclick="closePassModal()">Hủy bỏ</button>
+                            <button type="submit" class="btn-status btn-save">Xác nhận đổi</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </main>
 </div>
@@ -127,6 +300,24 @@
             }
         });
     });
+    // --- Logic Modal Đổi Mật Khẩu (Mới) ---
+    function openPassModal(id, name) {
+        document.getElementById('modalUserId').value = id;
+        document.getElementById('modalUserName').innerText = name;
+        document.getElementById('passwordModal').style.display = 'flex';
+    }
+
+    function closePassModal() {
+        document.getElementById('passwordModal').style.display = 'none';
+    }
+
+    // Đóng modal khi click ra ngoài vùng content
+    window.onclick = function (event) {
+        const modal = document.getElementById('passwordModal');
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
 </script>
 </body>
 </html>

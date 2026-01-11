@@ -213,9 +213,17 @@ exports.resetPassword = async (req, res) => {
         user.password = await bcrypt.hash(newpassword, 10);
         await user.save();
 
+
         otpRecord.isUsed = true;
         await otpRecord.save();
-
+        return req.session.save((err) => {
+            if (err) {
+                console.error("Lỗi lưu session sau khi reset pass:", err);
+            }
+            return res.render('user/login', {
+                success: "Đổi mật khẩu thành công! Vui lòng đăng nhập lại"
+            });
+        });
         // 9. Thành công
         return res.render('user/login', {
             success: "Đổi mật khẩu thành công! Vui lòng đăng nhập lại"

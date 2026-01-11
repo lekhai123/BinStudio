@@ -14,4 +14,6 @@ router.get('/order', orderController.getUserOrders);
 // Thêm route này vào file routes
 router.post('/repay-order', orderController.repayOrder);
 
+router.get('/order/tracking/:id', orderController.trackOrder);
+
 module.exports = router;

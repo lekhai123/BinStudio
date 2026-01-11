@@ -420,9 +420,38 @@
         const btnOtp = document.getElementById('btn-otp');
         const emailInput = document.getElementById('email');
         const msg = document.getElementById('otp-msg');
+        // Thêm tham chiếu đến form và các ô input mật khẩu
+        const changePassForm = document.querySelector('form[action="/Doimatkhau"]');
+        const newPasswordInput = document.querySelector('input[name="newpassword"]');
+        const confirmNewPasswordInput = document.querySelector('input[name="confirmnewpassword"]');
+
         const COOLDOWN_KEY = 'otp_cooldown_end';
 
-        // --- HÀM ĐẾM NGƯỢC ---
+        // --- HÀM KIỂM TRA FORM ĐỔI MẬT KHẨU ---
+        if (changePassForm) {
+            changePassForm.addEventListener('submit', function (event) {
+                const password = newPasswordInput.value;
+                const confirmPassword = confirmNewPasswordInput.value;
+
+                // 1. Kiểm tra độ dài mật khẩu >= 8 ký tự
+                if (password.length < 8) {
+                    event.preventDefault();
+                    alert("Mật khẩu mới phải có ít nhất 8 ký tự!");
+                    newPasswordInput.focus();
+                    return;
+                }
+
+                // 2. Kiểm tra mật khẩu xác nhận
+                if (password !== confirmPassword) {
+                    event.preventDefault();
+                    alert("Mật khẩu xác nhận không khớp!");
+                    confirmNewPasswordInput.focus();
+                    return;
+                }
+            });
+        }
+
+        // --- HÀM ĐẾM NGƯỢC (GIỮ NGUYÊN) ---
         function startCountdown(seconds) {
             let countdown = seconds;
             btnOtp.disabled = true;
@@ -441,7 +470,7 @@
             }, 1000);
         }
 
-        // --- CHECK LỊCH SỬ KHI LOAD TRANG ---
+        // --- CHECK LỊCH SỬ KHI LOAD TRANG (GIỮ NGUYÊN) ---
         document.addEventListener('DOMContentLoaded', () => {
             const savedEndTime = localStorage.getItem(COOLDOWN_KEY);
             if (savedEndTime) {
@@ -452,53 +481,55 @@
             }
         });
 
-        // --- SỰ KIỆN CLICK ---
-        btnOtp.addEventListener('click', async () => {
-            const email = emailInput.value;
-            msg.style.display = 'none';
+        // --- SỰ KIỆN CLICK OTP (GIỮ NGUYÊN) ---
+        if (btnOtp) {
+            btnOtp.addEventListener('click', async () => {
+                const email = emailInput.value;
+                msg.style.display = 'none';
 
-            if (!email) {
-                msg.style.display = 'block';
-                msg.innerText = "Vui lòng nhập email trước!";
-                msg.style.color = '#c62828';
-                return;
-            }
+                if (!email) {
+                    msg.style.display = 'block';
+                    msg.innerText = "Vui lòng nhập email trước!";
+                    msg.style.color = '#c62828';
+                    return;
+                }
 
-            const originalText = "Lấy OTP";
-            btnOtp.innerText = "Đang gửi...";
-            btnOtp.disabled = true;
+                const originalText = "Lấy OTP";
+                btnOtp.innerText = "Đang gửi...";
+                btnOtp.disabled = true;
 
-            try {
-                const response = await fetch('/get-otp', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: email, type: 'forgot' })
-                });
+                try {
+                    const response = await fetch('/get-otp', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: email, type: 'forgot' })
+                    });
 
-                const data = await response.json();
-                msg.style.display = 'block';
-                msg.innerText = data.message;
+                    const data = await response.json();
+                    msg.style.display = 'block';
+                    msg.innerText = data.message;
 
-                if (data.success) {
-                    msg.style.color = '#2e7d32'; // Xanh lá
-                    const cooldownSeconds = 60;
-                    const endTime = Date.now() + (cooldownSeconds * 1000);
-                    localStorage.setItem(COOLDOWN_KEY, endTime);
-                    startCountdown(cooldownSeconds);
-                } else {
-                    msg.style.color = '#c62828'; // Đỏ
+                    if (data.success) {
+                        msg.style.color = '#2e7d32'; // Xanh lá
+                        const cooldownSeconds = 60;
+                        const endTime = Date.now() + (cooldownSeconds * 1000);
+                        localStorage.setItem(COOLDOWN_KEY, endTime);
+                        startCountdown(cooldownSeconds);
+                    } else {
+                        msg.style.color = '#c62828'; // Đỏ
+                        btnOtp.disabled = false;
+                        btnOtp.innerText = originalText;
+                    }
+                } catch (error) {
+                    console.error(error);
+                    msg.style.display = 'block';
+                    msg.innerText = "Lỗi kết nối server!";
+                    msg.style.color = '#c62828';
                     btnOtp.disabled = false;
                     btnOtp.innerText = originalText;
                 }
-            } catch (error) {
-                console.error(error);
-                msg.style.display = 'block';
-                msg.innerText = "Lỗi kết nối server!";
-                msg.style.color = '#c62828';
-                btnOtp.disabled = false;
-                btnOtp.innerText = originalText;
-            }
-        });
+            });
+        }
     </script>
 </body>
 </html>

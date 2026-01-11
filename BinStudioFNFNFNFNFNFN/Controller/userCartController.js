@@ -78,10 +78,16 @@ exports.addToCart = async (req, res) => {
         // Cập nhật session nếu cần hiển thị số lượng trên menu
         // Lưu ý: cartCount thường đếm tổng số item (dòng) hoặc tổng số lượng sản phẩm
         req.session.cartCount = cart.items.length;
-        return res.json({
-            success: true,
-            message: "Đã thêm sản phẩm vào giỏ hàng!",
-            cartCount: req.session.cartCount
+
+        return req.session.save((err) => {
+            if (err) {
+                console.error("Lỗi lưu session giỏ hàng:", err);
+            }
+            return res.json({
+                success: true,
+                message: "Đã thêm sản phẩm vào giỏ hàng!",
+                cartCount: req.session.cartCount
+            });
         });
 
     } catch (err) {
@@ -123,10 +129,12 @@ exports.updateCart = async (req, res) => {
                 cart.items = cart.items.filter(i => i !== item);
             }
         }
-
         await cart.save();
         req.session.cartCount = cart.items.length;
-        res.json({ success: true, cartCount: req.session.cartCount });
+
+        return req.session.save(() => {
+            res.json({ success: true, cartCount: req.session.cartCount });
+        });
     } catch (err) {
         console.error("Lỗi updateCart:", err);
         res.status(500).json({ success: false, message: "Lỗi hệ thống" });

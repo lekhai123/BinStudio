@@ -32,7 +32,7 @@ exports.listProducts = async (req, res) => {
         }
 
         // 4. Truy vấn Database với bộ lọc (Sắp xếp mới nhất trước)
-        const products = await Product.find(filter).sort({ createdAt: -1 });
+        const products = await Product.find(filter).sort({ createdAt: -1 }).lean();
 
         // 5. Logic cảnh báo tồn kho thấp (< 3)
         let lowStockAlerts = [];

@@ -3,13 +3,17 @@
 const orderSchema = new mongoose.Schema({
     // 1. Định danh đơn hàng (Cần thiết cho Momo/Bank nội dung CK)
     orderCode: { type: String, required: true, unique: true },
+    ghn_order_code: String,
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
 
     // 2. Thông tin người nhận
     userInfo: {
         fullName: String,
         phone: String,
-        address: String
+        address: String,
+        provinceId: Number, // Lưu ID Tỉnh
+        districtId: Number, // Lưu ID Quận (Quan trọng)
+        wardCode: String    // Lưu Mã Phường (Quan trọng - BẮT BUỘC CÓ)
     },
 
     // 3. Danh sách sản phẩm (Snapshot dữ liệu lúc mua)
@@ -30,25 +34,37 @@ const orderSchema = new mongoose.Schema({
     // 5. Thông tin thanh toán & Vận chuyển
     shippingMethod: { type: String, default: 'GHN' }, // GHN, GHTK
     paymentMethod: { type: String, enum: ['MOMO', 'BANK', 'COD', 'SEPAY', 'PAYOS'], default: 'PAYOS' },
-    paymentStatus: { type: String, enum: ['Paid', 'Unpaid', 'Failed', 'Refund'], default: 'Unpaid' },
+    paymentStatus: {
+        type: String,
+        enum: ['Paid', 'Unpaid', 'Failed', 'Refund', 'Partially_Paid'],
+        default: 'Unpaid'
+    },
     status: {
         type: String,
-        default: 'pending',
+        default: 'Pending',
         enum: [
-            'NoStatus',
-            'pending',    // Chờ xác nhận / Chờ thanh toán
-            'delivering', // Đang giao hàng
-            'delivered',  // Giao thành công (Hoàn thành)
-            'cancelled'   // Đã hủy
+            'Pending',      // Chờ xử lý
+            'Confirmed',    // Đã xác nhận
+            'Processing',   // Đang xử lý
+            'Shipping',     // Đang giao hàng
+            'Completed',    // Giao thành công
+            'Cancelled',    // Đã hủy
+            'Returned'      // Trả hàng
         ]
     },
     payment_info: {
-        method: { type: String }, // Ví dụ: 'PAYOS'
-        status: { type: String }, // Ví dụ: 'Paid'
-        amount: { type: Number }, // Số tiền
-        date: { type: Date, default: Date.now } // Ngày thanh toán
+        method: { type: String },
+        status: { type: String },
+        paidAmount: Number,      // Số tiền đã trả (cho trường hợp thiếu)
+        remainingAmount: Number, // Số tiền còn thiếu
+        amount: { type: Number },
+        isOverpaid: Boolean,     // Đánh dấu trả thừa
+        note: String,            // Ghi chú
+        date: { type: Date, default: Date.now }
     },
-    createdAt: { type: Date, default: Date.now }
+
+}, {
+    timestamps: true
 });
 // 1. Index mã đơn hàng (Tìm kiếm chính xác đơn hàng)
 

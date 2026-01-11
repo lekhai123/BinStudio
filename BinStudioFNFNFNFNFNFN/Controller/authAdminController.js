@@ -27,9 +27,15 @@ exports.postLogin = async (req, res) => {
                 fullName: user.fullName
             };
 
-            // ✅ SỬA LẠI DÒNG NÀY: Thêm dấu '/' ở đầu
-            // Chuyển hướng về trang chủ Admin (localhost:3000/admin)
-            return res.redirect('/admin');
+            // 4. 🔥 ÉP LƯU SESSION TRƯỚC KHI REDIRECT (Fix lỗi trên Render)
+            return req.session.save((err) => {
+                if (err) {
+                    console.error("Lỗi lưu session Admin:", err);
+                    return res.render('admin/loginAdmin', { error: "Lỗi lưu phiên đăng nhập!" });
+                }
+                // Redirect về trang Dashboard sau khi session đã ghi vào DB xong
+                return res.redirect('/admin');
+            });
         }
 
         res.render('admin/loginAdmin', { error: "Email hoặc mật khẩu admin không đúng!" });

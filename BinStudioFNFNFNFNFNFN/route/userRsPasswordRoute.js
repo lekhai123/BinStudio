@@ -7,7 +7,7 @@ const rateLimit = require('express-rate-limit');
 const otpLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15p
     max: 5,
-    message: { success: false, message: "Bạn đã yêu cầu quá nhiều lần, vui lòng quay lại sau 1 giờ." }
+    message: { success: false, message: "Bạn đã yêu cầu quá nhiều lần, vui lòng quay lại sau 15p." }
 });
 // 1. Route yêu cầu gửi OTP
 router.post('/get-otp', otpLimiter, passwordController.getOTP);

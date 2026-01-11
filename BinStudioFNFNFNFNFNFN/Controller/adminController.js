@@ -8,6 +8,7 @@ const upload = require('../config/cloudinary');
 exports.getDashboard = async (req, res) => {
     try {
         const today = new Date();
+        today.setHours(today.getHours() + 7); // Chuyển về giờ VN
         today.setHours(0, 0, 0, 0);
 
         // --- A. CÁC THẺ THỐNG KÊ ---
@@ -27,16 +28,19 @@ exports.getDashboard = async (req, res) => {
         });
 
         // --- B. CẢNH BÁO KHO ---
-        const products = await Product.find();
+        const lowStockProducts = await Product.find({
+            "variants.stock": { $lt: 3 }
+        }).select('name variants').lean();
+
         let lowStockAlerts = [];
-        products.forEach(p => {
+        lowStockProducts.forEach(p => {
             p.variants.forEach(v => {
                 if (v.stock < 3) {
                     lowStockAlerts.push({ name: p.name, size: v.size, stock: v.stock });
                 }
             });
         });
-
+       
         // --- C. USER MỚI ---
         const recentUsers = await User.find({ role: 'user' }).sort({ createdAt: -1 }).limit(5);
 

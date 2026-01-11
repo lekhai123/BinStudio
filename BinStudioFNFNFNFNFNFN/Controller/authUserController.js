@@ -70,25 +70,31 @@ exports.register = async (req, res) => {
 };
 
 // --- 2. XỬ LÝ ĐĂNG NHẬP ---
+// --- 2. XỬ LÝ ĐĂNG NHẬP ---
 exports.login = async (req, res) => {
     try {
         const { email, password } = req.body;
-        const user = await User.findOne({ email });
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
         if (!emailRegex.test(email)) {
             return res.render('user/login', {
                 error: "Định dạng Email không hợp lệ!"
             });
         }
+
+        const user = await User.findOne({ email });
+
+        // Kiểm tra user tồn tại và mật khẩu khớp
         if (user && bcrypt.compareSync(password, user.password)) {
-            // Kiểm tra trạng thái khóa
+
+            // 1. Kiểm tra trạng thái khóa
             if (user.isLocked) {
                 return res.render('user/login', {
                     error: "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ Admin!"
                 });
             }
 
-            // Thiết lập Session
+            // 2. Thiết lập dữ liệu Session
             req.session.user = {
                 id: user._id,
                 email: user.email,
@@ -98,13 +104,27 @@ exports.login = async (req, res) => {
                 phone: user.phone
             };
 
-            // Phân quyền điều hướng (Fix lỗi %20 bằng cách viết sát)
-            return user.role === 'admin' ? res.redirect('/admin') : res.redirect('/');
+            // 3. 🔥 QUAN TRỌNG: Ép Session lưu vào Store (MongoDB) trước khi Redirect
+            // Trên Render, nếu redirect ngay lập tức, session có thể chưa kịp ghi vào DB
+            // dẫn đến việc trang đích không nhận diện được user đã đăng nhập.
+            return req.session.save((err) => {
+                if (err) {
+                    console.error("Lỗi lưu session trên Render:", err);
+                    return res.render('user/login', { error: "Lỗi hệ thống khi đăng nhập!" });
+                }
+
+                // Điều hướng dựa trên quyền
+                const redirectPath = user.role === 'admin' ? '/admin' : '/';
+                return res.redirect(redirectPath);
+            });
         }
+
+        // Nếu sai email hoặc mật khẩu
         res.render('user/login', { error: "Email hoặc mật khẩu không chính xác!" });
+
     } catch (err) {
         console.error("Lỗi login:", err);
-        res.status(500).send("Lỗi đăng nhập");
+        res.status(500).send("Lỗi đăng nhập hệ thống");
     }
 };
 

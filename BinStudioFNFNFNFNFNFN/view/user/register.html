@@ -481,11 +481,41 @@
         const btnOtp = document.getElementById('btn-otp');
         const emailInput = document.getElementById('email');
         const msg = document.getElementById('otp-msg');
+        // Thêm tham chiếu đến form và ô nhập mật khẩu
+        const registerForm = document.querySelector('form[action="/register"]');
+        const passwordInput = document.querySelector('input[name="password"]');
+        const confirmPasswordInput = document.querySelector('input[name="confirmpassword"]');
 
         // Key riêng cho trang Register để không trùng với trang Quên mật khẩu
         const COOLDOWN_KEY = 'otp_cooldown_register';
 
-        // --- HÀM ĐẾM NGƯỢC ---
+        // --- HÀM KIỂM TRA FORM TRƯỚC KHI GỬI (VALIDATION) ---
+        registerForm.addEventListener('submit', function (event) {
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+
+            // Xóa thông báo lỗi cũ nếu có (bạn có thể tùy chỉnh cách hiển thị lỗi này)
+            // Ví dụ dùng alert hoặc hiển thị text đỏ dưới ô input
+
+            // 1. Kiểm tra độ dài mật khẩu >= 8 ký tự
+            if (password.length < 8) {
+                event.preventDefault(); // Ngăn chặn gửi form
+                alert("Mật khẩu phải có ít nhất 8 ký tự!");
+                passwordInput.focus(); // Đưa con trỏ chuột về ô mật khẩu
+                return;
+            }
+
+            // 2. Kiểm tra mật khẩu xác nhận có khớp không (Thêm tính năng này cho chắc chắn)
+            if (password !== confirmPassword) {
+                event.preventDefault();
+                alert("Mật khẩu xác nhận không khớp!");
+                confirmPasswordInput.focus();
+                return;
+            }
+        });
+
+
+        // --- HÀM ĐẾM NGƯỢC (GIỮ NGUYÊN) ---
         function startCountdown(seconds) {
             let countdown = seconds;
             btnOtp.disabled = true;
@@ -504,7 +534,7 @@
             }, 1000);
         }
 
-        // --- CHECK LỊCH SỬ KHI LOAD TRANG ---
+        // --- CHECK LỊCH SỬ KHI LOAD TRANG (GIỮ NGUYÊN) ---
         document.addEventListener('DOMContentLoaded', () => {
             const savedEndTime = localStorage.getItem(COOLDOWN_KEY);
             if (savedEndTime) {
@@ -515,7 +545,7 @@
             }
         });
 
-        // --- CLICK SỰ KIỆN ---
+        // --- CLICK SỰ KIỆN LẤY OTP (GIỮ NGUYÊN) ---
         btnOtp.addEventListener('click', async () => {
             const email = emailInput.value;
             msg.style.display = 'none';

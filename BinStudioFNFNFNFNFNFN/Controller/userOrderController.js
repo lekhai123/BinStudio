@@ -4,6 +4,8 @@ const Cart = require('../Models/cart');
 const Product = require('../Models/product');
 const axios = require('axios');
 const crypto = require('crypto');
+const ghnService = require('../Service/ghnService');
+const telegramService = require('../Service/telegramService');
 
 // --- 🛠️ CLASS PAYOS THỦ CÔNG (GIỮ NGUYÊN) ---
 class PayOS {
@@ -66,7 +68,6 @@ exports.calcShipping = async (req, res) => {
             return res.json({ success: true, fee: fee });
         }
 
-        // GHN Logic (Rút gọn cho dễ nhìn)
         try {
             const payload = {
                 "service_type_id": 2, "from_district_id": 1454, "to_district_id": parseInt(districtId), "to_ward_code": wardCode.toString(),
@@ -81,25 +82,21 @@ exports.calcShipping = async (req, res) => {
     } catch (err) { res.status(500).json({ success: false, message: "Lỗi hệ thống" }); }
 };
 
-// --- 2. XỬ LÝ ĐẶT HÀNG (SỬA ĐỔI: KHÔNG TRỪ KHO, KHÔNG XÓA GIỎ) ---
+// --- XỬ LÝ ĐẶT HÀNG ---
 exports.placeOrder = async (req, res) => {
     try {
         if (!req.session.user) return res.status(401).json({ message: "Vui lòng đăng nhập!" });
-        if (!process.env.PAYOS_CLIENT_ID) return res.status(500).json({ message: "Thiếu ENV PayOS" });
 
-        const payos = new PayOS(
-            process.env.PAYOS_CLIENT_ID,
-            process.env.PAYOS_API_KEY,
-            process.env.PAYOS_CHECKSUM_KEY
-        );
+        if (req.body.paymentMethod === 'PAYOS' && !process.env.PAYOS_CLIENT_ID)
+            return res.status(500).json({ message: "Thiếu ENV PayOS" });
 
         const userId = req.session.user.id;
-        const { items, shippingInfo, shippingMethod, shippingFee } = req.body;
+        const { items, shippingInfo, shippingMethod, shippingFee, paymentMethod } = req.body;
 
         let serverProductTotal = 0;
         const orderItems = [];
 
-        // --- CHỈ KIỂM TRA TỒN KHO (KHÔNG TRỪ) ---
+        // --- CHECK KHO & LẤY THÔNG TIN SẢN PHẨM ---
         for (const item of items) {
             const product = await Product.findById(item.productId);
             if (!product) return res.status(400).json({ message: "Sản phẩm không tồn tại" });
@@ -108,12 +105,9 @@ exports.placeOrder = async (req, res) => {
             if (variantIndex === -1) return res.status(400).json({ message: `Size ${item.size} không hợp lệ` });
 
             const buyQty = parseInt(item.quantity);
-            // Kiểm tra xem có đủ hàng không
             if (product.variants[variantIndex].stock < buyQty) {
                 return res.status(400).json({ message: `Sản phẩm ${product.name} (${item.size}) đã hết hoặc không đủ số lượng!` });
             }
-
-            // ⚠️ QUAN TRỌNG: Đã xóa đoạn code trừ kho ở đây (product.save)
 
             serverProductTotal += product.price * buyQty;
             orderItems.push({
@@ -122,7 +116,8 @@ exports.placeOrder = async (req, res) => {
                 price: product.price,
                 quantity: buyQty,
                 size: item.size,
-                image: product.image[0]
+                image: product.image[0],
+                category: product.category || 'Khac'
             });
         }
 
@@ -130,60 +125,48 @@ exports.placeOrder = async (req, res) => {
         const finalTotal = serverProductTotal + fee;
         const numericOrderCode = Number(Date.now().toString().slice(-9));
 
-        // --- TẠO ĐƠN HÀNG (Trạng thái Unpaid) ---
+        // --- TẠO ĐƠN HÀNG DATABASE ---
         const newOrder = new Order({
             userId,
             orderCode: numericOrderCode,
-            userInfo: shippingInfo,
+            userInfo: {
+                fullName: shippingInfo.fullName,
+                phone: shippingInfo.phone,
+                address: shippingInfo.address,
+                provinceId: parseInt(shippingInfo.provinceId),
+                districtId: parseInt(shippingInfo.districtId),
+                wardCode: String(shippingInfo.wardCode)
+            },
             items: orderItems,
             shippingMethod,
             shippingFee: fee,
             productTotal: serverProductTotal,
             totalPrice: finalTotal,
-            paymentMethod: 'PAYOS',
-            status: 'NoStatus',
+            paymentMethod: paymentMethod,
+            status: 'Pending', // Mặc định là Pending (Chờ xử lý)
             paymentStatus: 'Unpaid',
+            ghn_order_code: null
         });
         await newOrder.save();
-        try {
-            // Lấy instance socket từ app (phải khớp với cách bạn set trong server.js)
-            const io = req.app.get('io');
 
-            if (io) {
-                io.emit('new-order', {
-                    message: `🔔 Đơn hàng mới #${numericOrderCode}`,
-                    orderCode: numericOrderCode,
-                    total: finalTotal,
-                    customer: shippingInfo.fullName || "Khách lẻ"
-                });
-                console.log("📡 Đã bắn socket new-order tới Admin");
-            } else {
-                console.log("⚠️ Không tìm thấy Socket IO instance");
-            }
-        } catch (socketErr) {
-            console.error("Lỗi gửi socket:", socketErr);
-            // Không return lỗi ở đây để khách vẫn nhận được link thanh toán
+        // 🔵 THANH TOÁN PAYOS
+        if (paymentMethod === 'PAYOS') {
+            const payos = new PayOS(process.env.PAYOS_CLIENT_ID, process.env.PAYOS_API_KEY, process.env.PAYOS_CHECKSUM_KEY);
+            const paymentData = {
+                orderCode: numericOrderCode,
+                amount: finalTotal,
+                description: `Thanh toan don ${numericOrderCode}`,
+                cancelUrl: `https://binstudio.onrender.com/order`,
+                returnUrl: `https://binstudio.onrender.com/order`,
+            };
+            const paymentLinkRes = await payos.createPaymentLink(paymentData);
+            return res.json({ success: true, type: 'PAYOS', checkoutUrl: paymentLinkRes.checkoutUrl });
+        } else {
+            // COD: Trừ kho ngay, xóa giỏ ngay, Bắn telegram ngay
+            await handleStockAndCart(newOrder);
+            telegramService.sendOrderNotify(newOrder); // Gửi Telegram để Admin Xác nhận
+            return res.json({ success: true, type: 'COD', orderCode: numericOrderCode });
         }
-
-        // ⚠️ QUAN TRỌNG: Đã xóa đoạn code xóa Giỏ Hàng ở đây
-        // Giỏ hàng vẫn giữ nguyên để nếu khách hủy thì quay lại vẫn còn
-
-        // --- TẠO LINK PAYOS ---
-        const paymentData = {
-            orderCode: numericOrderCode,
-            amount: finalTotal,
-            description: `Thanh toan don ${numericOrderCode}`,
-            cancelUrl: `https://pei-untestamentary-nonavoidably.ngrok-free.dev/order`, // Quay về giỏ hàng
-            returnUrl: `https://pei-untestamentary-nonavoidably.ngrok-free.dev/order`,
-        };
-
-        const paymentLinkRes = await payos.createPaymentLink(paymentData);
-
-        return res.json({
-            success: true,
-            type: 'PAYOS',
-            checkoutUrl: paymentLinkRes.checkoutUrl
-        });
 
     } catch (err) {
         console.error("Lỗi đặt hàng:", err);
@@ -191,173 +174,293 @@ exports.placeOrder = async (req, res) => {
     }
 };
 
-// --- 3. WEBHOOK (SỬA ĐỔI: TRỪ KHO VÀ XÓA GIỎ KHI THÀNH CÔNG) ---
+// --- WEBHOOK (ĐÃ SỬA: KHÔNG TẠO GHN, GIỮ STATUS PENDING) ---
+// --- 1. SỬA WEBHOOK: Lưu số tiền còn thiếu ---
 exports.payosWebhook = async (req, res) => {
-    console.log("🔔 [PAYOS WEBHOOK] Nhận tín hiệu...");
-    const { code, success, data } = req.body;
+    // 1. Lấy dữ liệu từ PayOS gửi sang
+    const { code, success, data, signature } = req.body;
 
-    if (code === "00" && success === true) {
-        try {
+    // Sử dụng console.error để log vẫn hiện trên Render khi đã tắt console.log
+    console.error(`🔔 [WEBHOOK] Nhận tín hiệu đơn hàng: ${data?.orderCode}`);
+
+    try {
+        // 2. Kiểm tra chữ ký (Signature Verification) để đảm bảo an toàn
+        // Sắp xếp các trường trong data theo alphabet để tạo chuỗi kiểm tra
+        const sortedDataStr = Object.keys(data)
+            .sort()
+            .map(key => `${key}=${data[key]}`)
+            .join('&');
+
+        const mySignature = crypto
+            .createHmac('sha256', process.env.PAYOS_CHECKSUM_KEY)
+            .update(sortedDataStr)
+            .digest('hex');
+
+        if (mySignature !== signature) {
+            console.error("❌ Chữ ký không khớp! Yêu cầu bị từ chối.");
+            return res.status(403).json({ error: "Invalid signature" });
+        }
+
+        // 3. Nếu thanh toán thành công (code "00")
+        if (code === "00" && success === true) {
             const orderCode = data.orderCode;
-            const amountPaid = data.amount;
+            const amountPaid = Number(data.amount);
 
+            // Tìm đơn hàng trong Database
             const order = await Order.findOne({ orderCode: orderCode });
-            if (!order) return res.status(404).json({ error: "Order not found" });
+            if (!order) {
+                console.error(`❌ Không tìm thấy đơn hàng #${orderCode}`);
+                return res.status(404).json({ error: "Order not found" });
+            }
 
-            // Kiểm tra: Chỉ xử lý nếu đơn hàng chưa thanh toán (Tránh trừ kho 2 lần)
-            if (amountPaid >= order.totalPrice && order.paymentStatus !== 'Paid') {
+            // Nếu đơn đã thanh toán trước đó (tránh xử lý trùng lặp)
+            if (order.paymentStatus === 'Paid') {
+                return res.status(200).json({ success: true });
+            }
 
-                // 1. CẬP NHẬT TRẠNG THÁI
+            const totalOrder = Number(order.totalPrice);
+
+            // --- TRƯỜNG HỢP A: THANH TOÁN THIẾU ---
+            if (amountPaid < totalOrder) {
+                const missing = totalOrder - amountPaid;
+                order.paymentStatus = 'Partially_Paid';
+                order.payment_info = {
+                    method: 'PAYOS',
+                    status: 'Partially_Paid',
+                    paidAmount: amountPaid,
+                    remainingAmount: missing,
+                    date: new Date(),
+                    note: `Khách trả thiếu ${missing.toLocaleString()}đ`
+                };
+                await order.save();
+
+                // Gửi thông báo cảnh báo cho Admin
+                if (req.io) req.io.to('admin').emit('payment-warning', { orderCode, missing });
+                console.error(`⚠️ Đơn #${orderCode} trả thiếu tiền.`);
+            }
+
+            // --- TRƯỜNG HỢP B: THANH TOÁN ĐỦ HOẶC DƯ ---
+            else {
+                const extra = amountPaid - totalOrder;
                 order.paymentStatus = 'Paid';
-                order.status = 'pending';
                 order.payment_info = {
                     method: 'PAYOS',
                     status: 'Paid',
                     amount: amountPaid,
-                    date: new Date()
+                    date: new Date(),
+                    note: extra > 0 ? `Dư ${extra.toLocaleString()}đ` : 'Đã trả đủ'
                 };
+                order.status = 'Pending'; // Chờ admin xác nhận đóng hàng
+
+                // Lưu thay đổi đơn hàng
                 await order.save();
-                console.log(`✅ Đơn hàng ${orderCode} đã thanh toán! Bắt đầu trừ kho & xóa cart...`);
 
-                // 2. TRỪ TỒN KHO THẬT SỰ (QUAN TRỌNG)
-                for (const item of order.items) {
-                    const product = await Product.findById(item.productId);
-                    if (product) {
-                        const variantIndex = product.variants.findIndex(v => v.size === item.size);
-                        if (variantIndex !== -1) {
-                            product.variants[variantIndex].stock -= item.quantity;
-                            await product.save();
-                        }
-                    }
-                }
+                // 4. Các thao tác hậu cần (Trừ kho, Xóa giỏ, Thông báo)
+                // Dùng Promise.all để các tác vụ chạy song song cho nhanh
+                await Promise.all([
+                    handleStockAndCart(order), // Hàm trừ kho bạn đã viết
+                    telegramService.sendOrderNotify(order) // Thông báo Telegram
+                ]);
 
-                // 3. XÓA SẢN PHẨM KHỎI GIỎ HÀNG CỦA USER
-                // Chúng ta cần UserId để tìm giỏ hàng
-                const cart = await Cart.findOne({ userId: order.userId });
-                if (cart) {
-                    const purchasedItems = order.items.map(i => ({ id: i.productId.toString(), size: i.size }));
-
-                    // Lọc bỏ những món đã mua trong đơn hàng này
-                    cart.items = cart.items.filter(cartItem =>
-                        !purchasedItems.some(p => p.id === cartItem.productId.toString() && p.size === cartItem.size)
-                    );
-
-                    await cart.save();
-                    console.log(`🛒 Đã làm sạch giỏ hàng cho User ${order.userId}`);
-                }
-
-                // 4. BẮN SOCKET
-                if (req.io) {
-                    req.io.emit('payment-success', { orderCode: orderCode });
-                }
-
-            } else {
-                console.log(`⚠️ Đơn ${orderCode} đã xử lý hoặc thiếu tiền.`);
+                // Bắn socket báo thành công realtime cho trình duyệt của khách/admin
+                if (req.io) req.io.emit('payment-success', { orderCode });
+                console.error(`✅ Đơn #${orderCode} đã thanh toán thành công.`);
             }
-            return res.status(200).json({ success: true });
-
-        } catch (error) {
-            console.error("❌ Lỗi Webhook:", error);
-            return res.status(500).json({ error: "Internal Server Error" });
         }
-    } else {
-        console.log("❌ Thanh toán thất bại/hủy.");
-        return res.status(200).json({ success: false });
+
+        // Luôn trả về 200 cho PayOS để họ không gửi lại Webhook nữa
+        return res.status(200).json({ success: true });
+
+    } catch (err) {
+        console.error("❌ Lỗi xử lý Webhook:", err.message);
+        // Vẫn trả về 200 hoặc 500 tùy chiến lược, thường 200 để tránh PayOS spam lại khi lỗi code
+        return res.status(200).json({ error: "Internal Error nhưng đã nhận tin" });
     }
 };
-// --- 5. HÀM THANH TOÁN LẠI (CÓ CHECK KHO) ---
-// --- 5. HÀM THANH TOÁN LẠI (FIX LỖI TRÙNG MÃ) ---
+// --- 2. SỬA REPAY: Tạo link thanh toán cho số tiền CÒN THIẾU ---
+
+// --- HÀM PHỤ: XỬ LÝ KHO & GIỎ HÀNG (Dùng chung cho COD và PayOS) ---
+async function handleStockAndCart(order) {
+    // 1. Trừ tồn kho
+    for (const item of order.items) {
+        const product = await Product.findById(item.productId);
+        if (product) {
+            const variantIndex = product.variants.findIndex(v => v.size === item.size);
+            if (variantIndex !== -1) {
+                product.variants[variantIndex].stock -= item.quantity;
+                await product.save();
+            }
+        }
+    }
+    // 2. Xóa giỏ hàng
+    const cart = await Cart.findOne({ userId: order.userId });
+    if (cart) {
+        const purchasedItems = order.items.map(i => ({ id: i.productId.toString(), size: i.size }));
+        cart.items = cart.items.filter(cartItem =>
+            !purchasedItems.some(p => p.id === cartItem.productId.toString() && p.size === cartItem.size)
+        );
+        await cart.save();
+    }
+}
+
 exports.repayOrder = async (req, res) => {
     try {
         if (!req.session.user) return res.status(401).json({ message: "Vui lòng đăng nhập!" });
-
         const { orderCode } = req.body;
 
-        // 1. Tìm đơn hàng cũ
-        const order = await Order.findOne({
-            orderCode: orderCode,
-            userId: req.session.user.id
-        });
+        const order = await Order.findOne({ orderCode: orderCode, userId: req.session.user.id });
+        if (!order) return res.status(404).json({ message: "Không tìm thấy đơn!" });
 
-        if (!order) return res.status(404).json({ message: "Không tìm thấy đơn hàng!" });
-        if (order.paymentStatus === 'Paid') return res.status(400).json({ message: "Đơn này đã trả tiền rồi!" });
+        // Nếu đã Paid thì chặn
+        if (order.paymentStatus === 'Paid') return res.status(400).json({ message: "Đơn này đã xong!" });
 
-        // 2. CHECK TỒN KHO (Giữ nguyên logic an toàn)
-        for (const item of order.items) {
-            const product = await Product.findById(item.productId);
-            if (!product) return res.status(400).json({ message: `Sản phẩm "${item.name}" đã ngừng bán.` });
+        // --- XÁC ĐỊNH SỐ TIỀN CẦN TRẢ ---
+        let amountToPay = Number(order.totalPrice);
+        let description = `Thanh toan lai ${order.orderCode}`;
 
-            const variant = product.variants.find(v => v.size === item.size);
-            if (!variant || variant.stock < item.quantity) {
-                return res.status(400).json({
-                    message: `Rất tiếc, "${item.name}" (Size: ${item.size}) hiện tại đã hết hàng!`
-                });
-            }
+        // Nếu đang nợ tiền (Partially_Paid) -> Chỉ trả số còn thiếu
+        if (order.paymentStatus === 'Partially_Paid' && order.payment_info && order.payment_info.remainingAmount) {
+            amountToPay = Number(order.payment_info.remainingAmount);
+            description = `Tra not ${order.orderCode}`;
         }
 
-        // 🔥 3. TẠO MÃ ĐƠN HÀNG MỚI (QUAN TRỌNG) 🔥
-        // Để tránh lỗi "Order already exists" của PayOS
+        // Tạo mã đơn mới để PayOS không báo trùng
         const newOrderCode = Number(Date.now().toString().slice(-9));
-
-        // Cập nhật mã mới vào Database ngay lập tức
         order.orderCode = newOrderCode;
+
+        // Cập nhật lại orderCode nhưng GIỮ NGUYÊN paymentStatus cũ
+        // để Webhook lần sau biết đường trừ tiếp
         await order.save();
-        try {
-            // Lấy instance socket từ app (phải khớp với cách bạn set trong server.js)
-            const io = req.app.get('io');
 
-            if (io) {
-                io.emit('new-order', {
-                    message: `🔔 Đơn hàng mới #${numericOrderCode}`,
-                    orderCode: numericOrderCode,
-                    total: finalTotal,
-                    customer: shippingInfo.fullName || "Khách lẻ"
-                });
-                console.log("📡 Đã bắn socket new-order tới Admin");
-            } else {
-                console.log("⚠️ Không tìm thấy Socket IO instance");
-            }
-        } catch (socketErr) {
-            console.error("Lỗi gửi socket:", socketErr);
-            // Không return lỗi ở đây để khách vẫn nhận được link thanh toán
-        }
-        console.log(`♻️ Đã đổi mã đơn cũ ${orderCode} thành mã mới ${newOrderCode}`);
-
-        // 4. Tạo Link PayOS với mã mới
-        const payos = new PayOS(
-            process.env.PAYOS_CLIENT_ID,
-            process.env.PAYOS_API_KEY,
-            process.env.PAYOS_CHECKSUM_KEY
-        );
-
+        const payos = new PayOS(process.env.PAYOS_CLIENT_ID, process.env.PAYOS_API_KEY, process.env.PAYOS_CHECKSUM_KEY);
         const paymentData = {
-            orderCode: newOrderCode, // Dùng mã mới
-            amount: Number(order.totalPrice),
-            description: `Thanh toan lai ${newOrderCode}`, // Nội dung ngắn gọn < 25 ký tự
-            cancelUrl: `https://pei-untestamentary-nonavoidably.ngrok-free.dev/order`,
-            returnUrl: `https://pei-untestamentary-nonavoidably.ngrok-free.dev/order`,
+            orderCode: newOrderCode,
+            amount: amountToPay, // Số tiền (Toàn bộ hoặc Phần thiếu)
+            description: description.substring(0, 25), // Cắt ngắn cho đỡ lỗi
+            cancelUrl: `https://binstudio.onrender.com/order`,
+            returnUrl: `https://binstudio.onrender.com/order`,
         };
 
         const paymentLinkRes = await payos.createPaymentLink(paymentData);
-
-        return res.json({
-            success: true,
-            checkoutUrl: paymentLinkRes.checkoutUrl
-        });
+        return res.json({ success: true, checkoutUrl: paymentLinkRes.checkoutUrl });
 
     } catch (err) {
         console.error("Lỗi Repay:", err);
-        res.status(500).json({ message: "Lỗi hệ thống: " + err.message });
+        res.status(500).json({ message: "Lỗi hệ thống" });
     }
-};// --- GIỮ NGUYÊN ---
+};
+
+
+// --- CÁC HÀM KHÁC (GET, TRACK) GIỮ NGUYÊN ---
 exports.getUserOrders = async (req, res) => {
     try {
         if (!req.session.user) return res.redirect('/login');
-        const orders = await Order.find({ userId: req.session.user.id }).sort({ createdAt: -1 });
-        res.render('user/order', {
-            user: req.session.user,
-            orders,
+        const orders = await Order.find({ userId: req.session.user.id }).sort({ createdAt: -1 }).lean();
+        res.render('user/order', { user: req.session.user, orders, cartCount: req.session.cartCount || 0 });
+    } catch (err) { res.status(500).send("Lỗi server"); }
+};
+
+exports.trackOrder = async (req, res) => {
+    try {
+        const orderId = req.params.id;
+        const order = await Order.findById(orderId);
+        if (!order) return res.render('404', { message: "Không tìm thấy đơn hàng" });
+
+        let trackingLogs = [];
+        let ghnStatus = "";
+
+        // TRƯỜNG HỢP 1: ĐƠN GHN (Giữ nguyên logic cũ)
+        if (order.ghn_order_code) {
+            try {
+                const ghnData = await ghnService.getOrderDetail(order.ghn_order_code);
+                if (ghnData && ghnData.data) {
+                    trackingLogs = ghnData.data.logs || [];
+                    ghnStatus = ghnData.data.status;
+
+                    // Logic Sync Status (Giữ nguyên)
+                    let mapStatus = null;
+                    if (ghnStatus === 'cancel' && order.status !== 'Cancelled') mapStatus = 'Cancelled';
+                    else if ((ghnStatus === 'delivered' || ghnStatus === 'finish') && order.status !== 'Completed') {
+                        mapStatus = 'Completed';
+                        // ... (Logic COD giữ nguyên)
+                    }
+                    else if (['picked', 'storing', 'transporting', 'sorting', 'delivering'].includes(ghnStatus) && (order.status === 'Processing' || order.status === 'Confirmed')) {
+                        mapStatus = 'Shipping';
+                    }
+                    else if (ghnStatus === 'return' && order.status !== 'Returned') mapStatus = 'Returned';
+
+                    if (mapStatus) {
+                        order.status = mapStatus;
+                        await order.save();
+                    }
+                }
+            } catch (e) { console.error("Lỗi GHN Track:", e.message); }
+        }
+
+        // TRƯỜNG HỢP 2: ĐƠN LOCAL (TỰ TẠO LOGS)
+        else {
+            // Log 1: Đặt hàng thành công (Luôn có)
+            trackingLogs.push({
+                status: 'placed',
+                status_name: 'Đặt hàng thành công',
+                action_at: order.createdAt,
+                location: { address: 'Hệ thống' }
+            });
+
+            // Log 2: Đã xác nhận (Nếu status khác Pending)
+            if (order.status !== 'Pending' && order.status !== 'Cancelled') {
+                trackingLogs.push({
+                    status: 'confirmed',
+                    status_name: 'Đã xác nhận đơn hàng',
+                    action_at: order.updatedAt, // Tạm dùng updatedAt
+                    location: { address: 'Shop' }
+                });
+            }
+
+            // Log 3: Đang giao hàng (Nếu status = Shipping hoặc Completed/Returned)
+            if (['Shipping', 'Completed', 'Returned'].includes(order.status)) {
+                trackingLogs.push({
+                    status: 'picking',
+                    status_name: 'Shipper đã lấy hàng đi giao',
+                    action_at: order.updatedAt,
+                    location: { address: 'Kho vận' }
+                });
+            }
+
+            // Log 4: Hoàn thành hoặc Trả hàng
+            if (order.status === 'Completed') {
+                trackingLogs.push({
+                    status: 'delivered',
+                    status_name: 'Giao hàng thành công',
+                    action_at: order.updatedAt,
+                    location: { address: order.userInfo.address }
+                });
+            } else if (order.status === 'Returned') {
+                trackingLogs.push({
+                    status: 'return',
+                    status_name: 'Khách trả hàng / Giao thất bại',
+                    action_at: order.updatedAt,
+                    location: { address: 'Shop' }
+                });
+            } else if (order.status === 'Cancelled') {
+                trackingLogs.push({
+                    status: 'cancel',
+                    status_name: 'Đơn hàng đã bị hủy',
+                    action_at: order.updatedAt,
+                    location: { address: 'Hệ thống' }
+                });
+            }
+
+            // Đảo ngược để log mới nhất lên đầu (giống GHN)
+            trackingLogs.reverse();
+        }
+
+        res.render('user/order-tracking', {
+            order: order,
+            trackingLogs: trackingLogs, // Đã xử lý reverse ở trên
+            ghnStatus: ghnStatus,
+            user: req.session.user || null,
             cartCount: req.session.cartCount || 0
         });
-    } catch (err) { res.status(500).send("Lỗi server"); }
+    } catch (err) { res.status(500).send("Lỗi Tracking"); }
 };
