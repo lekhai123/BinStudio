@@ -8,8 +8,11 @@ router.post('/api/calc-shipping', orderController.calcShipping);
 // 2. Xử lý đặt hàng
 router.post('/place-order', orderController.placeOrder);
 // 3.Webhook Sepay
-router.post('/api/payos-webhook', orderController.payosWebhook);
-// 4. Trang danh sách đơn hàng của User
+router.post(
+    '/api/payos-webhook',
+    express.raw({ type: 'application/json' }),
+    orderController.payosWebhook
+);// 4. Trang danh sách đơn hàng của User
 router.get('/order', orderController.getUserOrders);
 // Thêm route này vào file routes
 router.post('/repay-order', orderController.repayOrder);

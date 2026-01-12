@@ -102,26 +102,6 @@ const CONFIG = {
         'baseUrl': 'https://online-gateway.ghn.vn/shiip/public-api'
     }
 };
-function createSignature(data, checksumKey) {
-    const sortedKeys = Object.keys(data).sort(); // 1. Sắp xếp A-Z
-    const dataStr = sortedKeys
-        .map(key => {
-            const val = data[key];
-            // 2. LỌC KỸ: Chỉ lấy giá trị không null, không undefined, không rỗng
-            if (val === null || val === undefined || val === "") return null;
-            return `${key}=${val}`;
-        })
-        .filter(item => item !== null) // Loại bỏ các trường null vừa lọc
-        .join('&'); // Nối bằng &
-
-    // 3. Log ra để xem chuỗi trước khi băm (Quan trọng để debug)
-    console.log("📝 Chuỗi cần ký (My String):", dataStr);
-
-    return crypto
-        .createHmac('sha256', checksumKey)
-        .update(dataStr)
-        .digest('hex');
-}
 // ==========================================
 // 📦 2. CÁC HÀM XỬ LÝ (LOGIC CHÍNH)
 // ==========================================
@@ -246,19 +226,34 @@ exports.placeOrder = async (req, res) => {
 
 // --- WEBHOOK (QUAN TRỌNG NHẤT - ĐÃ SỬA THỦ CÔNG) ---
 exports.payosWebhook = async (req, res) => {
-    const { code, success, data, signature } = req.body;
-    console.log(`🔔 [WEBHOOK] Nhận tín hiệu đơn hàng: ${data?.orderCode}`);
-
     try {
         // ✅ FIX 3: Dùng hàm của class để verify (An toàn nhất)
-        const isValid = payosInstance.verifyWebhookData(req.body);
+        const rawBody = req.body; // Buffer
+        const signature = req.headers['x-payos-signature'];
 
-        if (!isValid) {
-            console.error("❌ CHỮ KÝ KHÔNG KHỚP!");
-            return res.status(403).json({ error: "Invalid signature" });
-        } else {
-            console.log("✅ Chữ ký hợp lệ!");
+        if (!signature) {
+            console.error("❌ Thiếu x-payos-signature");
+            return res.status(403).json({ error: "Missing signature" });
         }
+
+        const mySignature = crypto
+            .createHmac('sha256', process.env.PAYOS_CHECKSUM_KEY)
+            .update(rawBody)
+            .digest('hex');
+
+        if (mySignature !== signature) {
+            console.error("❌ CHỮ KÝ PAYOS KHÔNG KHỚP");
+            console.log("Mine:", mySignature);
+            console.log("PayOS:", signature);
+            return res.status(403).json({ error: "Invalid signature" });
+        }
+
+        console.log("✅ PayOS webhook hợp lệ");
+
+        // Parse JSON SAU KHI verify
+        const payload = JSON.parse(rawBody.toString());
+        const { code, success, data } = payload;
+
 
         // 2. Logic xử lý đơn hàng (như cũ)
         if (code === "00" && success === true) {
