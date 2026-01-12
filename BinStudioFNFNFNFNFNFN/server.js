@@ -27,56 +27,61 @@ app.use(cors({
     origin: 'https://binstudio.onrender.com', // Domain thật của bạn
     credentials: true
 }));
-
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             "default-src": ["'self'"],
 
-            // 1. Cho phép Script: Phải có 'unsafe-inline' nếu bạn viết code trực tiếp trong EJS
+            // 1. Phục hồi chức năng Lưu thông tin, Tăng/Giảm/Xóa (Sửa lỗi nút bấm)
             "script-src": [
                 "'self'",
-                "'unsafe-inline'",           // Cho phép các đoạn <script> trong file EJS hoạt động
-                "'unsafe-eval'",             // Một số thư viện như PayOS hoặc biểu đồ cần cái này
+                "'unsafe-inline'",           // Cho phép các sự kiện onclick và script trong EJS
+                "'unsafe-eval'",             // Cho phép thực thi logic tính toán
                 "https://pay.payos.vn",
                 "https://cdn.jsdelivr.net",
-                "https://code.jquery.com",    // Thêm Jquery nếu bạn có dùng
-                "https://telegram.org"
+                "https://code.jquery.com"
             ],
 
-            // 2. Cho phép Style: Phải có 'unsafe-inline' để hiện nút bấm và màu sắc
-            "style-src": [
-                "'self'",
-                "'unsafe-inline'",           // Rất quan trọng để không vỡ giao diện
-                "https://fonts.googleapis.com",
-                "https://cdn.jsdelivr.net",
-                "https://cdnjs.cloudflare.com" // Nguồn phổ biến của FontAwesome (icon nút bấm)
-            ],
-
-            // 3. Cho phép Font: Để hiện các icon trên nút bấm
-            "font-src": [
-                "'self'",
-                "https://fonts.gstatic.com",
-                "https://cdnjs.cloudflare.com", // Cho phép tải icon FontAwesome
-                "data:"
-            ],
-
-            "img-src": ["'self'", "data:", "https://res.cloudinary.com"],
-
-            // 4. Cho phép kết nối API (PayOS, GHN)
+            // 2. Cho phép gửi dữ liệu lên Server (Khắc phục nút Lưu thông tin)
             "connect-src": [
                 "'self'",
                 "https://pay.payos.vn",
-                "https://online-gateway.ghn.vn"
+                "https://online-gateway.ghn.vn",
+                "https://*.zalo.me"         // Nếu nút lưu có liên quan đến Zalo
             ],
 
-            "frame-src": ["'self'", "https://pay.payos.vn"], // Cho phép hiện khung thanh toán
+            // 3. Phục hồi giao diện nút và icon Zalo/thùng rác
+            "style-src": [
+                "'self'",
+                "'unsafe-inline'",           // Ngăn chặn vỡ giao diện nút bấm
+                "https://fonts.googleapis.com",
+                "https://cdn.jsdelivr.net",
+                "https://cdnjs.cloudflare.com" // Nguồn của FontAwesome
+            ],
+
+            // 4. Phục hồi font icon (Cộng/Trừ/Zalo)
+            "font-src": [
+                "'self'",
+                "https://fonts.gstatic.com",
+                "https://cdnjs.cloudflare.com",
+                "data:"                      // Cần thiết để hiển thị icon
+            ],
+
+            "img-src": [
+                "'self'",
+                "data:",
+                "https://res.cloudinary.com", // Ảnh sản phẩm
+                "https://*.zalo.me"
+            ],
+
+            "frame-src": ["'self'", "https://pay.payos.vn"],
             "object-src": ["'none'"],
-            "upgrade-insecure-requests": [],
+            "upgrade-insecure-requests": [], // Tự động chuyển HTTP sang HTTPS
         },
     },
-    crossOriginEmbedderPolicy: false, // Tắt cái này để tránh xung đột với ảnh Cloudinary
-})); const http = require('http');
+    crossOriginEmbedderPolicy: false,
+}));
+const http = require('http');
 const { Server } = require('socket.io');
 const server = http.createServer(app);
 const io = new Server(server);
