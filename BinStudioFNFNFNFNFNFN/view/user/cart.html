@@ -1227,24 +1227,46 @@
 
         window.saveUserInfo = async function () {
             try {
+                // 1. Lấy giá trị từ HTML vào biến
+                const fullName = document.getElementById('fullName').value;
+                const phone = document.getElementById('phone').value;
+                const address = getFullAddress(); // Giả định hàm này đã tồn tại
+
+                // 2. Kiểm tra dữ liệu (Validation)
                 const vnf_regex = /^(0)[0-9]{9}$/;
+                if (!fullName.trim()) {
+                    return alert("Vui lòng nhập họ tên!");
+                }
                 if (!phone) {
                     return alert("Vui lòng nhập số điện thoại!");
-                } else if (vnf_regex.test(phone) === false) {
+                }
+                if (vnf_regex.test(phone) === false) {
                     return alert("Số điện thoại không hợp lệ! (Phải có 10 chữ số và bắt đầu bằng số 0)");
                 }
-                await fetch('/save-profile', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+
+                // 3. Gửi dữ liệu lên Server
+                const response = await fetch('/save-profile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        fullName: document.getElementById('fullName').value,
-                        phone: document.getElementById('phone').value,
-                        address: getFullAddress()
+                        fullName: fullName,
+                        phone: phone,
+                        address: address
                     })
                 });
-                alert("Đã lưu thông tin!");
-            } catch (e) { alert("Lỗi lưu"); }
-        };
 
+                // 4. Kiểm tra kết quả trả về từ Server
+                if (response.ok) {
+                    alert("Đã lưu thông tin khách hàng thành công!");
+                } else {
+                    alert("Lỗi từ hệ thống: Không thể lưu thông tin.");
+                }
+
+            } catch (e) {
+                console.error(e);
+                alert("Lỗi kết nối: " + e.message);
+            }
+        };
         // --- CHẠY KHI TRANG LOAD ---
         document.addEventListener('DOMContentLoaded', () => {
             loadProvinces(); // Bắt đầu chuỗi tự động load địa chỉ
