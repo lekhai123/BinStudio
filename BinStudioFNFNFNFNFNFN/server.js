@@ -20,11 +20,24 @@ const orderController = require('./Controller/userOrderController');
 const MongoStore = require('connect-mongo'); // THÊM DÒNG NÀY VÀO ĐÂY
 app.set('trust proxy', 1);
 const cors = require('cors');
+const helmet = require('helmet');
 // --- CẤU HÌNH GỬI EMAIL ---
 
 app.use(cors({
     origin: 'https://binstudio.onrender.com', // Domain thật của bạn
     credentials: true
+}));
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            "default-src": ["'self'"],
+            "script-src": ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"], // Cho phép script từ CDN nếu cần
+            "img-src": ["'self'", "data:", "https://res.cloudinary.com"], // Cho phép ảnh từ Cloudinary của bạn
+            "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        },
+    },
+    hidePoweredBy: true, // Ẩn thông tin server sử dụng Express
+    xssFilter: true,     // Bật cơ chế chặn XSS của trình duyệt
 }));
 
 const http = require('http');

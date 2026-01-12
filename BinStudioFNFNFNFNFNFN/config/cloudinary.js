@@ -17,6 +17,11 @@ const storage = new CloudinaryStorage({
             folder: 'BinStudio_Products', // Thư mục trên Cloudinary
             resource_type: 'auto',       // Tự động nhận diện ảnh hoặc video
             allowed_formats: ['jpg', 'png', 'mp4', 'mov'],
+            transformation: [
+                { width: 1000, crop: "limit" }, // Giới hạn kích thước ảnh
+                { quality: "auto" },            // Tự động nén để load nhanh
+                { fetch_format: "auto" }        // Tự động chuyển sang WebP nếu trình duyệt hỗ trợ
+            ]
         };
     },
 });
