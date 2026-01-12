@@ -28,58 +28,29 @@ app.use(cors({
     credentials: true
 }));
 app.use(helmet({
-    contentSecurityPolicy: {
-        directives: {
-            "default-src": ["'self'"],
+    // ❌ TẮT CHẶN SCRIPT & CSS (CSP)
+    // Giúp các nút bấm, icon Zalo, giỏ hàng, style inline chạy bình thường
+    contentSecurityPolicy: false,
 
-            // 1. Phục hồi chức năng Lưu thông tin, Tăng/Giảm/Xóa (Sửa lỗi nút bấm)
-            "script-src": [
-                "'self'",
-                "'unsafe-inline'",           // Cho phép các sự kiện onclick và script trong EJS
-                "'unsafe-eval'",             // Cho phép thực thi logic tính toán
-                "https://pay.payos.vn",
-                "https://cdn.jsdelivr.net",
-                "https://code.jquery.com"
-            ],
-
-            // 2. Cho phép gửi dữ liệu lên Server (Khắc phục nút Lưu thông tin)
-            "connect-src": [
-                "'self'",
-                "https://pay.payos.vn",
-                "https://online-gateway.ghn.vn",
-                "https://*.zalo.me"         // Nếu nút lưu có liên quan đến Zalo
-            ],
-
-            // 3. Phục hồi giao diện nút và icon Zalo/thùng rác
-            "style-src": [
-                "'self'",
-                "'unsafe-inline'",           // Ngăn chặn vỡ giao diện nút bấm
-                "https://fonts.googleapis.com",
-                "https://cdn.jsdelivr.net",
-                "https://cdnjs.cloudflare.com" // Nguồn của FontAwesome
-            ],
-
-            // 4. Phục hồi font icon (Cộng/Trừ/Zalo)
-            "font-src": [
-                "'self'",
-                "https://fonts.gstatic.com",
-                "https://cdnjs.cloudflare.com",
-                "data:"                      // Cần thiết để hiển thị icon
-            ],
-
-            "img-src": [
-                "'self'",
-                "data:",
-                "https://res.cloudinary.com", // Ảnh sản phẩm
-                "https://*.zalo.me"
-            ],
-
-            "frame-src": ["'self'", "https://pay.payos.vn"],
-            "object-src": ["'none'"],
-            "upgrade-insecure-requests": [], // Tự động chuyển HTTP sang HTTPS
-        },
-    },
+    // ❌ TẮT CHẶN NHÚNG CHÉO
+    // Giúp ảnh Cloudinary và CDN bên thứ 3 load thoải mái
     crossOriginEmbedderPolicy: false,
+
+    // ✅ GIỮ LẠI CÁC BẢO MẬT CƠ BẢN (Không gây lỗi web)
+    // 1. Chống Clickjacking (Không cho web khác nhúng web bạn vào iframe)
+    frameguard: { action: 'deny' },
+
+    // 2. Chống ép kiểu MIME (Ngăn trình duyệt đoán sai định dạng file)
+    noSniff: true,
+
+    // 3. Bảo vệ XSS cơ bản của trình duyệt
+    xssFilter: true,
+
+    // 4. Ép buộc dùng HTTPS (Tốt cho SSL)
+    hsts: true,
+
+    // 5. Ẩn thông tin server (X-Powered-By: Express) để hacker khó đoán công nghệ
+    hidePoweredBy: true,
 }));
 const http = require('http');
 const { Server } = require('socket.io');
