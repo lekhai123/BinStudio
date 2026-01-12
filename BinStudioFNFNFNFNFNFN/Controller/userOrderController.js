@@ -23,20 +23,22 @@ class PayOS {
         const dataStr = sortedKeys
             .map(key => {
                 const val = data[key];
-                // 2. LỌC KỸ: Bỏ null, undefined. 
-                // QUAN TRỌNG: PayOS vẫn tính chuỗi rỗng "" và số 0
+                // ✅ FIX QUAN TRỌNG: Chỉ bỏ null/undefined. 
+                // Vẫn giữ lại chuỗi rỗng "" và số 0 vì PayOS có gửi chúng
                 if (val === null || val === undefined) return null;
                 return `${key}=${val}`;
             })
             .filter(item => item !== null) // Loại bỏ null
             .join('&'); // Nối bằng &
 
+        // Debug: In ra chuỗi để so sánh
+        console.log("📝 Chuỗi để hash:", dataStr);
+
         return crypto
             .createHmac('sha256', this.checksumKey)
             .update(dataStr)
             .digest('hex');
     }
-
     async createPaymentLink(data) {
         const signData = {
             amount: data.amount,
