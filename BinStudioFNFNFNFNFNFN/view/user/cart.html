@@ -1226,6 +1226,12 @@
         };
 
         window.saveUserInfo = async function () {
+            const vnf_regex = /^(0)[0-9]{9}$/;
+            if (!phone) {
+                return alert("Vui lòng nhập số điện thoại!");
+            } else if (vnf_regex.test(phone) === false) {
+                return alert("Số điện thoại không hợp lệ! (Phải có 10 chữ số và bắt đầu bằng số 0)");
+            }
             try {
                 await fetch('/save-profile', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },

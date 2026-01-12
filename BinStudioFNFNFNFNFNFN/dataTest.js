@@ -67,18 +67,13 @@ async function createAdmin() {
         await mongoose.connect(process.env.MONGODB_URI);
         console.log("Đã kết nối MongoDB...");
         
-        // 2. Kiểm tra admin tồn tại
-        const existingAdmin = await User.findOne({ email: 'admin@binstudio.vn' });
-        if (existingAdmin) {
-            console.log("Tài khoản admin đã tồn tại!");
-            return;
-        }
+
         const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash('admin123', saltRounds);
+        const hashedPassword = await bcrypt.hash('ahYsna7261#@@slaPSIANXxjsj&*/NS!AdjCk', saltRounds);
         // 3. Khởi tạo đối tượng admin
         const adminUser = new User({
             fullName: 'Quản trị viên BinStudio',
-            email: 'admin@binstudio.vn',
+            email: 'binstudio@admin9192821632827.vn',
             password: hashedPassword,
             phone: '0901234567',
             address: '202/2 Huỳnh Văn Bánh, Phú Nhuận',

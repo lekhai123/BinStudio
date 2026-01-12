@@ -175,9 +175,10 @@ exports.resetPassword = async (req, res) => {
         otpRecord.isUsed = true;
         await otpRecord.save();
 
-        req.flash('success', "Đổi mật khẩu thành công! Vui lòng đăng nhập lại.");
         return req.session.save(() => {
-            res.redirect('/login');
+            res.render('user/login', {
+                success: "Đổi mật khẩu thành công! Vui lòng đăng nhập lại."
+            });
         });
 
     } catch (err) {
