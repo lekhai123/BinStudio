@@ -6,11 +6,7 @@ if (process.env.NODE_ENV === 'production') {
     console.warn = function () { };
     // console.error = function () {}; // Nên giữ lại console.error để biết nếu web bị sập
 }
-app.post(
-    '/api/payos-webhook',
-    express.raw({ type: 'application/json' }),
-    orderController.payosWebhook
-);
+
 const express = require('express');
 const mongoose = require('mongoose');
 const session = require('express-session');
@@ -26,8 +22,13 @@ const MongoStore = require('connect-mongo'); // THÊM DÒNG NÀY VÀO ĐÂY
 app.set('trust proxy', 1);
 const cors = require('cors');
 const helmet = require('helmet');
+app.use(express.json());
 // --- CẤU HÌNH GỬI EMAIL ---
-
+app.post(
+    '/api/payos-webhook',
+    express.raw({ type: 'application/json' }),
+    orderController.payosWebhook
+);
 app.use(cors({
     origin: 'https://binstudio.onrender.com', // Domain thật của bạn
     credentials: true
@@ -85,7 +86,7 @@ app.engine('html', require('ejs').renderFile);
 app.set('view engine', 'html');
 app.set('views', path.join(__dirname, 'view'));
 
-app.use(express.json());
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
