@@ -27,19 +27,44 @@ app.use(cors({
     origin: 'https://binstudio.onrender.com', // Domain thật của bạn
     credentials: true
 }));
+
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
+            // Chỉ cho phép tải tài nguyên từ chính domain của bạn
             "default-src": ["'self'"],
-            "script-src": ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"], // Cho phép script từ CDN nếu cần
-            "img-src": ["'self'", "data:", "https://res.cloudinary.com"], // Cho phép ảnh từ Cloudinary của bạn
-            "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+
+            // 🔥 KHẮC PHỤC LỖI TRONG ẢNH: Loại bỏ 'unsafe-inline'
+            // Chỉ cho phép script từ chính mình và các nguồn tin cậy cụ thể
+            "script-src": [
+                "'self'",
+                "https://cdn.jsdelivr.net", // Nếu dùng Bootstrap/Jquery từ CDN
+                "https://pay.payos.vn"      // Cho phép Script của cổng thanh toán PayOS
+            ],
+
+            // Cho phép hiển thị ảnh từ chính mình, data URI và Cloudinary
+            "img-src": [
+                "'self'",
+                "data:",
+                "https://res.cloudinary.com"
+            ],
+
+
+            // Chặn hoàn toàn việc nhúng web vào iframe để chống Clickjacking
+            "frame-ancestors": ["'none'"],
+
+            // Chặn các plugin như Flash
+            "object-src": ["'none'"],
+
+            // Buộc mọi kết nối phải dùng HTTPS (Sửa lỗi HSTS)
+            "upgrade-insecure-requests": [],
         },
     },
-    hidePoweredBy: true, // Ẩn thông tin server sử dụng Express
-    xssFilter: true,     // Bật cơ chế chặn XSS của trình duyệt
+    // Thêm các header bảo mật khác
+    referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+    xssFilter: true,
+    noSniff: true,
 }));
-
 const http = require('http');
 const { Server } = require('socket.io');
 const server = http.createServer(app);
