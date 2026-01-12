@@ -33,32 +33,50 @@ app.use(helmet({
         directives: {
             "default-src": ["'self'"],
 
-            // 🎨 Phần dành cho CSS
-            "style-src": [
+            // 1. Cho phép Script: Phải có 'unsafe-inline' nếu bạn viết code trực tiếp trong EJS
+            "script-src": [
                 "'self'",
-                "'unsafe-inline'",           // Giữ lại để không lỗi các đoạn CSS viết trong EJS
-                "https://fonts.googleapis.com",
-                "https://cdn.jsdelivr.net"    // Nếu bạn có dùng Bootstrap CDN
+                "'unsafe-inline'",           // Cho phép các đoạn <script> trong file EJS hoạt động
+                "'unsafe-eval'",             // Một số thư viện như PayOS hoặc biểu đồ cần cái này
+                "https://pay.payos.vn",
+                "https://cdn.jsdelivr.net",
+                "https://code.jquery.com",    // Thêm Jquery nếu bạn có dùng
+                "https://telegram.org"
             ],
 
-            // 🔠 Phần dành cho Font chữ
+            // 2. Cho phép Style: Phải có 'unsafe-inline' để hiện nút bấm và màu sắc
+            "style-src": [
+                "'self'",
+                "'unsafe-inline'",           // Rất quan trọng để không vỡ giao diện
+                "https://fonts.googleapis.com",
+                "https://cdn.jsdelivr.net",
+                "https://cdnjs.cloudflare.com" // Nguồn phổ biến của FontAwesome (icon nút bấm)
+            ],
+
+            // 3. Cho phép Font: Để hiện các icon trên nút bấm
             "font-src": [
                 "'self'",
                 "https://fonts.gstatic.com",
-                "data:"                      // Cho phép các icon dạng font-data
+                "https://cdnjs.cloudflare.com", // Cho phép tải icon FontAwesome
+                "data:"
             ],
 
-            // Các phần khác giữ nguyên như đã thảo luận
-            "script-src": ["'self'", "https://pay.payos.vn", "https://cdn.jsdelivr.net"],
             "img-src": ["'self'", "data:", "https://res.cloudinary.com"],
-            "connect-src": ["'self'", "https://pay.payos.vn", "https://online-gateway.ghn.vn"],
-            "frame-ancestors": ["'none'"],
+
+            // 4. Cho phép kết nối API (PayOS, GHN)
+            "connect-src": [
+                "'self'",
+                "https://pay.payos.vn",
+                "https://online-gateway.ghn.vn"
+            ],
+
+            "frame-src": ["'self'", "https://pay.payos.vn"], // Cho phép hiện khung thanh toán
             "object-src": ["'none'"],
             "upgrade-insecure-requests": [],
         },
     },
-}));
-const http = require('http');
+    crossOriginEmbedderPolicy: false, // Tắt cái này để tránh xung đột với ảnh Cloudinary
+})); const http = require('http');
 const { Server } = require('socket.io');
 const server = http.createServer(app);
 const io = new Server(server);
