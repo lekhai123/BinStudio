@@ -98,7 +98,7 @@ exports.getOTP = async (req, res) => {
         // ===== SEND EMAIL VỚI RESEND =====
         // Lưu ý: Nếu chưa verify domain, chỉ gửi được về chính email đăng ký Resend
         const { data, error } = await resend.emails.send({
-            from: 'BinStudio <onboarding@resend.dev>', // Mail mặc định dùng để test
+            from: 'BinStudio <security@binstudio.id.vn>', // Mail mặc định dùng để test
             to: [email],
             subject: 'Mã OTP xác thực - BinStudio',
             html: `

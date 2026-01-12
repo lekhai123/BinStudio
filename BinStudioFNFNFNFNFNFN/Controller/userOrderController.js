@@ -156,8 +156,8 @@ exports.placeOrder = async (req, res) => {
                 orderCode: numericOrderCode,
                 amount: finalTotal,
                 description: `Thanh toan don ${numericOrderCode}`,
-                cancelUrl: `https://binstudio.onrender.com/order`,
-                returnUrl: `https://binstudio.onrender.com/order`,
+                cancelUrl: `https://binstudio.id.vn/order`,
+                returnUrl: `https://binstudio.id.vn/order`,
             };
             const paymentLinkRes = await payos.createPaymentLink(paymentData);
             return res.json({ success: true, type: 'PAYOS', checkoutUrl: paymentLinkRes.checkoutUrl });
@@ -337,8 +337,8 @@ exports.repayOrder = async (req, res) => {
             orderCode: newOrderCode,
             amount: amountToPay, // Số tiền (Toàn bộ hoặc Phần thiếu)
             description: description.substring(0, 25), // Cắt ngắn cho đỡ lỗi
-            cancelUrl: `https://binstudio.onrender.com/order`,
-            returnUrl: `https://binstudio.onrender.com/order`,
+            cancelUrl: `https://binstudio.id.vn/order`,
+            returnUrl: `https://binstudio.id.vn/order`,
         };
 
         const paymentLinkRes = await payos.createPaymentLink(paymentData);
