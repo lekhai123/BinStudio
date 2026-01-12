@@ -17,10 +17,29 @@ class PayOS {
         this.checksumKey = checksumKey;
     }
 
-    
+    // ✅ FIX 1: Đưa hàm này vào TRONG class
+    createSignature(data) {
+        const sortedKeys = Object.keys(data).sort(); // Sắp xếp key A-Z
+        const dataStr = sortedKeys
+            .map(key => {
+                const val = data[key];
+                // Lọc bỏ null, undefined, rỗng
+                if (val === null || val === undefined || val === "") return null;
+                return `${key}=${val}`;
+            })
+            .filter(item => item !== null) // Loại bỏ phần tử null
+            .join('&'); // Nối bằng &
+
+        // 🔥 LOG DEBUG: Xem chuỗi này có giống PayOS không
+        console.log("📝 String to Hash:", dataStr);
+
+        return crypto
+            .createHmac('sha256', this.checksumKey)
+            .update(dataStr)
+            .digest('hex');
+    }
 
     async createPaymentLink(data) {
-        // Tạo chữ ký cho request tạo link
         const signData = {
             amount: data.amount,
             cancelUrl: data.cancelUrl,
@@ -28,6 +47,7 @@ class PayOS {
             orderCode: data.orderCode,
             returnUrl: data.returnUrl
         };
+        // Gọi hàm nội bộ bằng từ khóa 'this'
         const signature = this.createSignature(signData);
 
         console.log("🚀 Đang gọi API PayOS trực tiếp...");
@@ -49,7 +69,23 @@ class PayOS {
         }
     }
 
-   
+    // ✅ FIX 2: Hàm check Webhook nằm trong class luôn
+    verifyWebhookData(webhookBody) {
+        const { data, signature } = webhookBody;
+        if (!data || !signature) return false;
+
+        // Tính lại chữ ký từ data nhận được
+        const mySignature = this.createSignature(data);
+
+        // So sánh
+        if (mySignature !== signature) {
+            console.log(`❌ LỆCH:`);
+            console.log(`- Của mình: ${mySignature}`);
+            console.log(`- Của PayOS: ${signature}`);
+            return false;
+        }
+        return true;
+    }
 }
 
 // Khởi tạo đối tượng PayOS dùng chung
@@ -212,21 +248,18 @@ exports.placeOrder = async (req, res) => {
 exports.payosWebhook = async (req, res) => {
     const { code, success, data, signature } = req.body;
     console.log(`🔔 [WEBHOOK] Nhận tín hiệu đơn hàng: ${data?.orderCode}`);
-    console.log(`🔑 Signature PayOS gửi: ${signature}`);
+
     try {
-        const mySignature = createSignature(data, process.env.PAYOS_CHECKSUM_KEY);
-        console.log(`🔏 Signature tôi tính: ${mySignature}`);
+        // ✅ FIX 3: Dùng hàm của class để verify (An toàn nhất)
+        const isValid = payosInstance.verifyWebhookData(req.body);
 
-        if (mySignature !== signature) {
-            console.error("❌ LỆCH CHỮ KÝ!");
-            console.error("👉 Kiểm tra lại PAYOS_CHECKSUM_KEY trong file .env");
-            console.error("👉 Đảm bảo không dùng nhầm API_KEY hay CLIENT_ID");
-
-            // Tạm thời comment dòng return này nếu bạn muốn test logic bên dưới
+        if (!isValid) {
+            console.error("❌ CHỮ KÝ KHÔNG KHỚP!");
             // return res.status(403).json({ error: "Invalid signature" });
         } else {
-            console.log("✅ Chữ ký khớp 100%!");
+            console.log("✅ Chữ ký hợp lệ!");
         }
+
         // 2. Logic xử lý đơn hàng (như cũ)
         if (code === "00" && success === true) {
             const orderCode = data.orderCode;
@@ -235,7 +268,7 @@ exports.payosWebhook = async (req, res) => {
             const order = await Order.findOne({ orderCode: orderCode });
             if (!order) {
                 console.error(`❌ Không tìm thấy đơn hàng #${orderCode}`);
-                return res.json({ success: true }); // Trả 200 để PayOS không spam
+                return res.json({ success: true });
             }
 
             if (order.paymentStatus === 'Paid') return res.json({ success: true });
@@ -281,7 +314,6 @@ exports.payosWebhook = async (req, res) => {
         return res.status(200).json({ success: true });
     }
 };
-
 // --- TRẢ LẠI TIỀN / TRẢ NỐT (REPAY) ---
 exports.repayOrder = async (req, res) => {
     try {
