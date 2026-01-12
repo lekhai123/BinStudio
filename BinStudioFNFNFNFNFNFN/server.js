@@ -36,11 +36,7 @@ app.use(helmet({
 
             // 🔥 KHẮC PHỤC LỖI TRONG ẢNH: Loại bỏ 'unsafe-inline'
             // Chỉ cho phép script từ chính mình và các nguồn tin cậy cụ thể
-            "script-src": [
-                "'self'",
-                "https://cdn.jsdelivr.net", // Nếu dùng Bootstrap/Jquery từ CDN
-                "https://pay.payos.vn"      // Cho phép Script của cổng thanh toán PayOS
-            ],
+
 
             // Cho phép hiển thị ảnh từ chính mình, data URI và Cloudinary
             "img-src": [
