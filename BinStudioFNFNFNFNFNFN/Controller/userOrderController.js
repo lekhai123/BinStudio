@@ -19,19 +19,17 @@ class PayOS {
 
     // ✅ FIX 1: Đưa hàm này vào TRONG class
     createSignature(data) {
-        const sortedKeys = Object.keys(data).sort(); // Sắp xếp key A-Z
+        const sortedKeys = Object.keys(data).sort(); // 1. Sắp xếp A-Z
         const dataStr = sortedKeys
             .map(key => {
                 const val = data[key];
-                // Lọc bỏ null, undefined, rỗng
-                if (val === null || val === undefined || val === "") return null;
+                // 2. LỌC KỸ: Bỏ null, undefined. 
+                // QUAN TRỌNG: PayOS vẫn tính chuỗi rỗng "" và số 0
+                if (val === null || val === undefined) return null;
                 return `${key}=${val}`;
             })
-            .filter(item => item !== null) // Loại bỏ phần tử null
+            .filter(item => item !== null) // Loại bỏ null
             .join('&'); // Nối bằng &
-
-        // 🔥 LOG DEBUG: Xem chuỗi này có giống PayOS không
-        console.log("📝 String to Hash:", dataStr);
 
         return crypto
             .createHmac('sha256', this.checksumKey)
@@ -255,7 +253,7 @@ exports.payosWebhook = async (req, res) => {
 
         if (!isValid) {
             console.error("❌ CHỮ KÝ KHÔNG KHỚP!");
-            // return res.status(403).json({ error: "Invalid signature" });
+            return res.status(403).json({ error: "Invalid signature" });
         } else {
             console.log("✅ Chữ ký hợp lệ!");
         }
