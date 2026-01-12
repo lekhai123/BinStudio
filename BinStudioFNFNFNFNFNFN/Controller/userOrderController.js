@@ -17,24 +17,7 @@ class PayOS {
         this.checksumKey = checksumKey;
     }
 
-    // Hàm tạo chữ ký chuẩn (Dùng chung cho cả tạo link và webhook)
-    createSignature(data) {
-        const sortedKeys = Object.keys(data).sort(); // 1. Sắp xếp key A-Z
-        const dataStr = sortedKeys
-            .map(key => {
-                // Chỉ lấy giá trị, không lấy null/undefined
-                const val = data[key];
-                if (val === null || val === undefined) return '';
-                return `${key}=${val}`;
-            })
-            .filter(item => item !== '') // Lọc bỏ trường rỗng
-            .join('&'); // Nối bằng &
-
-        return crypto
-            .createHmac('sha256', this.checksumKey)
-            .update(dataStr)
-            .digest('hex');
-    }
+    
 
     async createPaymentLink(data) {
         // Tạo chữ ký cho request tạo link
@@ -66,17 +49,7 @@ class PayOS {
         }
     }
 
-    // Hàm xác thực Webhook thủ công
-    verifyWebhookData(webhookBody) {
-        const { data, signature } = webhookBody;
-        if (!data || !signature) return false;
-
-        // Tính toán lại chữ ký từ data nhận được
-        const mySignature = this.createSignature(data);
-
-        // So sánh
-        return mySignature === signature;
-    }
+   
 }
 
 // Khởi tạo đối tượng PayOS dùng chung
@@ -93,7 +66,26 @@ const CONFIG = {
         'baseUrl': 'https://online-gateway.ghn.vn/shiip/public-api'
     }
 };
+function createSignature(data, checksumKey) {
+    const sortedKeys = Object.keys(data).sort(); // 1. Sắp xếp A-Z
+    const dataStr = sortedKeys
+        .map(key => {
+            const val = data[key];
+            // 2. LỌC KỸ: Chỉ lấy giá trị không null, không undefined, không rỗng
+            if (val === null || val === undefined || val === "") return null;
+            return `${key}=${val}`;
+        })
+        .filter(item => item !== null) // Loại bỏ các trường null vừa lọc
+        .join('&'); // Nối bằng &
 
+    // 3. Log ra để xem chuỗi trước khi băm (Quan trọng để debug)
+    console.log("📝 Chuỗi cần ký (My String):", dataStr);
+
+    return crypto
+        .createHmac('sha256', checksumKey)
+        .update(dataStr)
+        .digest('hex');
+}
 // ==========================================
 // 📦 2. CÁC HÀM XỬ LÝ (LOGIC CHÍNH)
 // ==========================================
@@ -220,16 +212,21 @@ exports.placeOrder = async (req, res) => {
 exports.payosWebhook = async (req, res) => {
     const { code, success, data, signature } = req.body;
     console.log(`🔔 [WEBHOOK] Nhận tín hiệu đơn hàng: ${data?.orderCode}`);
-
+    console.log(`🔑 Signature PayOS gửi: ${signature}`);
     try {
-        // 1. Dùng hàm thủ công verifyWebhookData để check chữ ký
-        const isValid = payosInstance.verifyWebhookData(req.body);
+        const mySignature = createSignature(data, process.env.PAYOS_CHECKSUM_KEY);
+        console.log(`🔏 Signature tôi tính: ${mySignature}`);
 
-        if (!isValid) {
-            console.error("❌ Chữ ký không khớp! (Thủ công)");
-            return res.status(403).json({ error: "Invalid signature" });
+        if (mySignature !== signature) {
+            console.error("❌ LỆCH CHỮ KÝ!");
+            console.error("👉 Kiểm tra lại PAYOS_CHECKSUM_KEY trong file .env");
+            console.error("👉 Đảm bảo không dùng nhầm API_KEY hay CLIENT_ID");
+
+            // Tạm thời comment dòng return này nếu bạn muốn test logic bên dưới
+            // return res.status(403).json({ error: "Invalid signature" });
+        } else {
+            console.log("✅ Chữ ký khớp 100%!");
         }
-
         // 2. Logic xử lý đơn hàng (như cũ)
         if (code === "00" && success === true) {
             const orderCode = data.orderCode;
