@@ -31,35 +31,32 @@ app.use(cors({
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
-            // Chỉ cho phép tải tài nguyên từ chính domain của bạn
             "default-src": ["'self'"],
 
-            // 🔥 KHẮC PHỤC LỖI TRONG ẢNH: Loại bỏ 'unsafe-inline'
-            // Chỉ cho phép script từ chính mình và các nguồn tin cậy cụ thể
-
-
-            // Cho phép hiển thị ảnh từ chính mình, data URI và Cloudinary
-            "img-src": [
+            // 🎨 Phần dành cho CSS
+            "style-src": [
                 "'self'",
-                "data:",
-                "https://res.cloudinary.com"
+                "'unsafe-inline'",           // Giữ lại để không lỗi các đoạn CSS viết trong EJS
+                "https://fonts.googleapis.com",
+                "https://cdn.jsdelivr.net"    // Nếu bạn có dùng Bootstrap CDN
             ],
 
+            // 🔠 Phần dành cho Font chữ
+            "font-src": [
+                "'self'",
+                "https://fonts.gstatic.com",
+                "data:"                      // Cho phép các icon dạng font-data
+            ],
 
-            // Chặn hoàn toàn việc nhúng web vào iframe để chống Clickjacking
+            // Các phần khác giữ nguyên như đã thảo luận
+            "script-src": ["'self'", "https://pay.payos.vn", "https://cdn.jsdelivr.net"],
+            "img-src": ["'self'", "data:", "https://res.cloudinary.com"],
+            "connect-src": ["'self'", "https://pay.payos.vn", "https://online-gateway.ghn.vn"],
             "frame-ancestors": ["'none'"],
-
-            // Chặn các plugin như Flash
             "object-src": ["'none'"],
-
-            // Buộc mọi kết nối phải dùng HTTPS (Sửa lỗi HSTS)
             "upgrade-insecure-requests": [],
         },
     },
-    // Thêm các header bảo mật khác
-    referrerPolicy: { policy: "strict-origin-when-cross-origin" },
-    xssFilter: true,
-    noSniff: true,
 }));
 const http = require('http');
 const { Server } = require('socket.io');
