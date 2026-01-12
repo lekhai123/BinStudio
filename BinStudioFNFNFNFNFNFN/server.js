@@ -1,10 +1,16 @@
 ﻿require('dotenv').config();
+const orderController = require('./Controller/userOrderController');
 if (process.env.NODE_ENV === 'production') {
     console.log = function () { };
     console.info = function () { };
     console.warn = function () { };
     // console.error = function () {}; // Nên giữ lại console.error để biết nếu web bị sập
 }
+app.post(
+    '/api/payos-webhook',
+    express.raw({ type: 'application/json' }),
+    orderController.payosWebhook
+);
 const express = require('express');
 const mongoose = require('mongoose');
 const session = require('express-session');
@@ -16,7 +22,6 @@ const userSharedRoutes = require('./route/userIndexRoute');
 const adminSharedRoutes = require('./route/adminIndexRoute');
 const ghnRouter = require('./route/ghnRoute');
 const flash = require('connect-flash');
-const orderController = require('./Controller/userOrderController');
 const MongoStore = require('connect-mongo'); // THÊM DÒNG NÀY VÀO ĐÂY
 app.set('trust proxy', 1);
 const cors = require('cors');
