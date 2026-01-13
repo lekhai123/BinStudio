@@ -86,6 +86,11 @@ exports.updateOrderStatus = async (req, res) => {
 
         // --- 7. LƯU DATABASE ---
         order.status = newStatus;
+        order.trackingLogs.push({
+            status: newStatus,
+            action_at: new Date(), // Giờ bấm nút xác nhận
+            note: 'Admin cập nhật'
+        });
         await order.save();
         await Log.create({
             type: 'ORDER',

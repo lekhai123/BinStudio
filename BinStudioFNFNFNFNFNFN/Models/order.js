@@ -52,6 +52,13 @@ const orderSchema = new mongoose.Schema({
             'Returned'      // Trả hàng
         ]
     },
+    trackingLogs: [
+        {
+            status: String,      // Ví dụ: 'Confirmed', 'Shipping'
+            action_at: Date,     // Thời gian xảy ra
+            note: String         // Ghi chú (nếu có)
+        }
+    ],
     payment_info: {
         method: { type: String },
         status: { type: String },
