@@ -8,7 +8,7 @@ const ghnService = require('../Service/ghnService');
 const telegramService = require('../Service/telegramService');
 
 // ==========================================
-// 🛠️ 1. CLASS PAYOS THỦ CÔNG (CHUẨN HÓA)
+// 🛠️ 1. CLASS PAYOS (CHUẨN HÓA THEO SAMPLE CODE)
 // ==========================================
 class PayOS {
     constructor(clientId, apiKey, checksumKey) {
@@ -17,29 +17,57 @@ class PayOS {
         this.checksumKey = checksumKey;
     }
 
-    // ✅ FIX 1: Đưa hàm này vào TRONG class
-    createSignature(data) {
-        const sortedKeys = Object.keys(data).sort(); // 1. Sắp xếp A-Z
-        const dataStr = sortedKeys
-            .map(key => {
-                const val = data[key];
-                // ✅ FIX QUAN TRỌNG: Chỉ bỏ null/undefined. 
-                // Vẫn giữ lại chuỗi rỗng "" và số 0 vì PayOS có gửi chúng
-                if (val === null || val === undefined) return null;
-                return `${key}=${val}`;
-            })
-            .filter(item => item !== null) // Loại bỏ null
-            .join('&'); // Nối bằng &
+    // 1. Hàm sắp xếp object theo key (Giống sample: sortObjDataByKey)
+    sortObjDataByKey(object) {
+        const orderedObject = Object.keys(object)
+            .sort()
+            .reduce((obj, key) => {
+                obj[key] = object[key];
+                return obj;
+            }, {});
+        return orderedObject;
+    }
 
-        // Debug: In ra chuỗi để so sánh
-        console.log("📝 Chuỗi để hash:", dataStr);
+    // 2. Hàm chuyển object thành query string (Giống sample: convertObjToQueryStr)
+    convertObjToQueryStr(object) {
+        return Object.keys(object)
+            .filter((key) => object[key] !== undefined) // Chỉ lọc undefined gốc
+            .map((key) => {
+                let value = object[key];
+
+                // Nếu là mảng (Array) thì sort và stringify (Logic của PayOS)
+                if (value && Array.isArray(value)) {
+                    value = JSON.stringify(value.map((val) => this.sortObjDataByKey(val)));
+                }
+
+                // Chuyển null, undefined, "null" thành chuỗi rỗng ""
+                // QUAN TRỌNG: Key vẫn được giữ lại chứ không bị xóa
+                if ([null, undefined, 'undefined', 'null'].includes(value)) {
+                    value = '';
+                }
+
+                return `${key}=${value}`;
+            })
+            .join('&');
+    }
+
+    // 3. Hàm tạo chữ ký HMAC_SHA256
+    createSignature(data) {
+        const sortedData = this.sortObjDataByKey(data);
+        const dataQueryStr = this.convertObjToQueryStr(sortedData);
+
+        // Debug: In ra để kiểm tra
+        // console.log("📝 Data String to Hash:", dataQueryStr);
 
         return crypto
             .createHmac('sha256', this.checksumKey)
-            .update(dataStr)
+            .update(dataQueryStr)
             .digest('hex');
     }
+
+    // 4. Tạo Payment Link
     async createPaymentLink(data) {
+        // Chỉ lấy các trường cần thiết để ký
         const signData = {
             amount: data.amount,
             cancelUrl: data.cancelUrl,
@@ -47,10 +75,11 @@ class PayOS {
             orderCode: data.orderCode,
             returnUrl: data.returnUrl
         };
-        // Gọi hàm nội bộ bằng từ khóa 'this'
+
+        // Tạo chữ ký
         const signature = this.createSignature(signData);
 
-        console.log("🚀 Đang gọi API PayOS trực tiếp...");
+        console.log("🚀 Đang gọi API PayOS...");
         try {
             const res = await axios.post(
                 'https://api-merchant.payos.vn/v2/payment-requests',
@@ -69,7 +98,7 @@ class PayOS {
         }
     }
 
-    // ✅ FIX 2: Hàm check Webhook nằm trong class luôn
+    // 5. Xác thực Webhook
     verifyWebhookData(webhookBody) {
         const { data, signature } = webhookBody;
         if (!data || !signature) return false;
@@ -79,16 +108,17 @@ class PayOS {
 
         // So sánh
         if (mySignature !== signature) {
-            console.log(`❌ LỆCH:`);
-            console.log(`- Của mình: ${mySignature}`);
-            console.log(`- Của PayOS: ${signature}`);
+            console.log("❌ LỆCH CHỮ KÝ:");
+            console.log("👉 Server tính: ", mySignature);
+            console.log("👉 PayOS gửi:   ", signature);
+            // console.log("👉 Data gốc:    ", JSON.stringify(data));
             return false;
         }
         return true;
     }
 }
 
-// Khởi tạo đối tượng PayOS dùng chung
+// Khởi tạo đối tượng PayOS
 const payosInstance = new PayOS(
     process.env.PAYOS_CLIENT_ID,
     process.env.PAYOS_API_KEY,
@@ -102,6 +132,7 @@ const CONFIG = {
         'baseUrl': 'https://online-gateway.ghn.vn/shiip/public-api'
     }
 };
+
 // ==========================================
 // 📦 2. CÁC HÀM XỬ LÝ (LOGIC CHÍNH)
 // ==========================================
@@ -175,7 +206,7 @@ exports.placeOrder = async (req, res) => {
 
         const fee = parseInt(shippingFee);
         const finalTotal = serverProductTotal + fee;
-        const numericOrderCode = Number(Date.now().toString().slice(-9)); // Mã đơn 9 số
+        const numericOrderCode = Number(Date.now().toString().slice(-9));
 
         const newOrder = new Order({
             userId,
@@ -205,10 +236,9 @@ exports.placeOrder = async (req, res) => {
                 orderCode: numericOrderCode,
                 amount: finalTotal,
                 description: `Thanh toan don ${numericOrderCode}`,
-                cancelUrl: `https://binstudio.id.vn/order`, // Link khi khách hủy
-                returnUrl: `https://binstudio.id.vn/order`, // Link khi khách trả xong
+                cancelUrl: `https://binstudio.id.vn/order`,
+                returnUrl: `https://binstudio.id.vn/order`,
             };
-            // Gọi hàm của Class PayOS thủ công
             const paymentLinkRes = await payosInstance.createPaymentLink(paymentData);
             return res.json({ success: true, type: 'PAYOS', checkoutUrl: paymentLinkRes.checkoutUrl });
         } else {
@@ -224,36 +254,22 @@ exports.placeOrder = async (req, res) => {
     }
 };
 
-// --- WEBHOOK (QUAN TRỌNG NHẤT - ĐÃ SỬA THỦ CÔNG) ---
+// --- WEBHOOK (ĐÃ FIX: DÙNG LOGIC CHUẨN ĐỂ CHECK) ---
 exports.payosWebhook = async (req, res) => {
+    const { code, success, data, signature } = req.body;
+    console.log(`🔔 [WEBHOOK] Nhận tín hiệu đơn hàng: ${data?.orderCode}`);
+
     try {
-        // ✅ FIX 3: Dùng hàm của class để verify (An toàn nhất)
-        const rawBody = req.body; // Buffer
-        const signature = req.headers['x-payos-signature'];
+        // 1. Kiểm tra chữ ký
+        const isValid = payosInstance.verifyWebhookData(req.body);
 
-        if (!signature) {
-            console.error("❌ Thiếu x-payos-signature");
-            return res.status(403).json({ error: "Missing signature" });
-        }
-
-        const mySignature = crypto
-            .createHmac('sha256', process.env.PAYOS_CHECKSUM_KEY)
-            .update(rawBody)
-            .digest('hex');
-
-        if (mySignature !== signature) {
-            console.error("❌ CHỮ KÝ PAYOS KHÔNG KHỚP");
-            console.log("Mine:", mySignature);
-            console.log("PayOS:", signature);
+        if (!isValid) {
+            console.error("❌ CẢNH BÁO: Chữ ký không khớp! Dừng xử lý.");
+            // CHẶN HACKER Ở ĐÂY
             return res.status(403).json({ error: "Invalid signature" });
         }
 
-        console.log("✅ PayOS webhook hợp lệ");
-
-        // Parse JSON SAU KHI verify
-        const payload = JSON.parse(rawBody.toString());
-        const { code, success, data } = payload;
-
+        console.log("✅ Chữ ký hợp lệ!");
 
         // 2. Logic xử lý đơn hàng (như cũ)
         if (code === "00" && success === true) {
@@ -261,10 +277,7 @@ exports.payosWebhook = async (req, res) => {
             const amountPaid = Number(data.amount);
 
             const order = await Order.findOne({ orderCode: orderCode });
-            if (!order) {
-                console.error(`❌ Không tìm thấy đơn hàng #${orderCode}`);
-                return res.json({ success: true });
-            }
+            if (!order) return res.json({ success: true });
 
             if (order.paymentStatus === 'Paid') return res.json({ success: true });
 
@@ -309,7 +322,8 @@ exports.payosWebhook = async (req, res) => {
         return res.status(200).json({ success: true });
     }
 };
-// --- TRẢ LẠI TIỀN / TRẢ NỐT (REPAY) ---
+
+// --- REPAY ORDER (GIỮ NGUYÊN) ---
 exports.repayOrder = async (req, res) => {
     try {
         if (!req.session.user) return res.status(401).json({ message: "Vui lòng đăng nhập!" });
@@ -327,9 +341,8 @@ exports.repayOrder = async (req, res) => {
             description = `Tra not ${order.orderCode}`;
         }
 
-        // Tạo mã mới để không bị lỗi trùng lặp trên PayOS
         const newOrderCode = Number(Date.now().toString().slice(-9));
-        order.orderCode = newOrderCode; // Cập nhật mã mới vào DB
+        order.orderCode = newOrderCode;
         await order.save();
 
         const paymentData = {
@@ -349,9 +362,8 @@ exports.repayOrder = async (req, res) => {
     }
 };
 
-// --- HÀM PHỤ TRỢ (HELPER) ---
+// --- HELPER & GET (GIỮ NGUYÊN) ---
 async function handleStockAndCart(order) {
-    // Trừ kho
     for (const item of order.items) {
         const product = await Product.findById(item.productId);
         if (product) {
@@ -362,7 +374,6 @@ async function handleStockAndCart(order) {
             }
         }
     }
-    // Xóa giỏ
     const cart = await Cart.findOne({ userId: order.userId });
     if (cart) {
         const purchasedItems = order.items.map(i => ({ id: i.productId.toString(), size: i.size }));
@@ -373,7 +384,6 @@ async function handleStockAndCart(order) {
     }
 }
 
-// --- CÁC HÀM GET KHÁC GIỮ NGUYÊN NHƯ CŨ ---
 exports.getUserOrders = async (req, res) => {
     try {
         if (!req.session.user) return res.redirect('/login');
@@ -381,6 +391,8 @@ exports.getUserOrders = async (req, res) => {
         res.render('user/order', { user: req.session.user, orders, cartCount: req.session.cartCount || 0 });
     } catch (err) { res.status(500).send("Lỗi server"); }
 };
+
+
 
 exports.trackOrder = async (req, res) => {
 
