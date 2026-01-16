@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="/css/admin-style.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600&display=swap" rel="stylesheet">
     <style>
+        /* CSS cho phần chọn size */
         .size-group {
             display: none;
             margin-top: 15px;
@@ -26,8 +27,8 @@
             width: 80px;
             font-weight: bold;
         }
-
-        .current-imgs img {
+        /* CSS cho ảnh hiện tại */
+        .current-imgs img, .current-imgs video {
             width: 60px;
             height: 80px;
             object-fit: cover;
@@ -35,13 +36,36 @@
             margin-right: 5px;
             border: 1px solid #ddd;
         }
+
+        /* CSS MỚI: Khối thông tin ship */
+        .ship-info-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 5px;
+        }
+
+        .ship-input-group {
+            flex: 1;
+        }
+
+            .ship-input-group label {
+                display: block;
+                font-size: 12px;
+                color: #666;
+                margin-bottom: 3px;
+            }
+
+            .ship-input-group input {
+                width: 100%;
+                padding: 8px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+            }
     </style>
 </head>
 <body>
 
     <div class="admin-container">
-
-
         <main class="main-content">
             <div class="header-main">
                 <h1 class="page-title"><%= typeof product !== 'undefined' ? 'Cập nhật sản phẩm' : 'Thêm sản phẩm mới' %></h1>
@@ -49,12 +73,9 @@
             </div>
 
             <div class="table-card" style="max-width: 800px; margin-top: 20px;">
-                <form action="<%= typeof product !== 'undefined'
-    ? '/admin/products/edit-product/' + product._id
-    : '/admin/products/add-product' %>"
-    method="POST"
-    enctype="multipart/form-data">
-
+                <form action="<%= typeof product !== 'undefined' ? '/admin/products/edit-product/' + product._id : '/admin/products/add-product' %>"
+                      method="POST"
+                      enctype="multipart/form-data">
 
                     <div class="form-group" style="margin-bottom: 20px;">
                         <label style="font-weight: bold;">Tên sản phẩm:</label>
@@ -72,6 +93,36 @@
                                style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd;">
                     </div>
 
+                    <div class="form-group" style="margin-bottom: 20px; padding: 15px; background: #e6f7ff; border: 1px solid #91d5ff; border-radius: 6px;">
+                        <label style="font-weight: bold; color: #0050b3; display: block; margin-bottom: 10px;">
+                            <i class="fas fa-truck"></i> Thông tin vận chuyển (Bắt buộc cho GHN):
+                        </label>
+                        <div class="ship-info-container">
+                            <div class="ship-input-group">
+                                <label>Cân nặng (gram)</label>
+                                <input type="number" name="weight" placeholder="500"
+                                       value="<%= (typeof product !== 'undefined' && product.weight) ? product.weight : 500 %>">
+                            </div>
+                            <div class="ship-input-group">
+                                <label>Dài (cm)</label>
+                                <input type="number" name="length" placeholder="30"
+                                       value="<%= (typeof product !== 'undefined' && product.length) ? product.length : 30 %>">
+                            </div>
+                            <div class="ship-input-group">
+                                <label>Rộng (cm)</label>
+                                <input type="number" name="width" placeholder="20"
+                                       value="<%= (typeof product !== 'undefined' && product.width) ? product.width : 20 %>">
+                            </div>
+                            <div class="ship-input-group">
+                                <label>Cao (cm)</label>
+                                <input type="number" name="height" placeholder="10"
+                                       value="<%= (typeof product !== 'undefined' && product.height) ? product.height : 10 %>">
+                            </div>
+                        </div>
+                        <small style="display: block; margin-top: 5px; color: #666; font-style: italic;">
+                            * Mặc định hệ thống: 500g (30x20x10 cm). Hãy nhập chính xác để phí ship không bị sai.
+                        </small>
+                    </div>
                     <div class="form-group" style="margin-bottom: 20px;">
                         <label style="font-weight: bold;">Danh mục:</label>
                         <% if (typeof product !== 'undefined') { %>
@@ -135,7 +186,6 @@
                                     <% } else { %>
                                     <img src="<%= imgUrl %>" style="width: 80px; height: 80px; object-fit: cover;">
                                     <% } %>
-
                                     <div style="margin-top: 5px; font-size: 13px;">
                                         <label style="color: #cf1322; cursor: pointer; font-weight: bold;">
                                             <input type="checkbox" name="delete_images[]" value="<%= imgUrl %>"> Xóa
@@ -153,10 +203,8 @@
                                 <%= typeof product !== 'undefined' ? 'Chọn thêm ảnh mới (Nếu có).' : 'Hỗ trợ JPG, PNG, MP4 (Tự động lưu Cloudinary)' %>
                             </p>
                         </div>
-                        <% if (typeof product !== 'undefined') { %>
-                        <p style="font-size: 12px; color: #d32f2f; margin-top: 5px; font-weight: bold;">* Lưu ý: Phải giữ lại ít nhất 1 ảnh/video cho sản phẩm.</p>
-                        <% } %>
                     </div>
+
                     <button type="submit" class="btn-add" style="width: 100%; padding: 15px; background: <%= typeof product !== 'undefined' ? '#27ae60' : '#d1b06b' %>; color: white; border: none; font-weight: bold; cursor: pointer;">
                         <%= typeof product !== 'undefined' ? 'LƯU THAY ĐỔI' : 'ĐĂNG SẢN PHẨM' %>
                     </button>
@@ -164,8 +212,8 @@
             </div>
         </main>
     </div>
+
     <script>
-                // Chỉ chạy script ẩn/hiện nếu KHÔNG phải trang sửa (vì trang sửa đã set cứng display rồi)
                 <% if (typeof product === 'undefined') { %>
                     const categorySelect = document.getElementById('categorySelect');
                 const groupFreesize = document.getElementById('group-freesize');

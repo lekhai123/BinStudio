@@ -4,7 +4,7 @@ if (process.env.NODE_ENV === 'production') {
     console.log = function () { };
     console.info = function () { };
     console.warn = function () { };
-    // console.error = function () {}; // Nên giữ lại console.error để biết nếu web bị sập
+    console.error = function () {}; // Nên giữ lại console.error để biết nếu web bị sập
 }
 
 const express = require('express');
@@ -91,7 +91,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'binstudio_secret',
+    secret: process.env.SESSION_SECRET || 'abcuwh28jo101jmdkdn#$%^&91ndnsniojww8u82388zzSHDHIDHDH',
     resave: false,
     saveUninitialized: false, // Để false là đúng để tránh rác DB
     store: MongoStore.create({
@@ -111,7 +111,7 @@ app.use(systemLog);
 app.use(injectUserData);
 
 app.use('/', userSharedRoutes); 
-app.use('/admin',adminSharedRoutes); 
+app.use('/ayqmlSQOCNXSJsnq1891kazmsmiHSOQLSNXWUananwwu9910q2101ksnshshsw',adminSharedRoutes); 
 
 app.use('/', ghnRouter);
 

@@ -140,9 +140,12 @@ const CONFIG = {
 // --- TÍNH SHIP (GIỮ NGUYÊN) ---
 exports.calcShipping = async (req, res) => {
     try {
-        const { districtId, wardCode, carrier, orderAmount, provinceId } = req.body;
+        const { districtId, wardCode, carrier, orderAmount, provinceId, items } = req.body;
+
+        // Validation
         if (!districtId || !wardCode) return res.status(400).json({ success: false, message: "Thiếu thông tin địa chỉ" });
 
+        // 1. Local Shipping Logic
         if (carrier === 'LOCAL') {
             const pId = parseInt(provinceId);
             if (pId !== 202) return res.status(400).json({ success: false, message: "Chỉ ship nội thành TP.HCM" });
@@ -151,20 +154,70 @@ exports.calcShipping = async (req, res) => {
             return res.json({ success: true, fee: fee });
         }
 
+        // 2. GHN Shipping Logic
         try {
-            const payload = {
-                "service_type_id": 2, "from_district_id": 1454, "to_district_id": parseInt(districtId), "to_ward_code": wardCode.toString(),
-                "height": 10, "length": 40, "weight": 2000, "width": 40, "insurance_value": parseInt(orderAmount) || 1000000
-            };
-            const ghnRes = await axios.post(`${CONFIG.GHN.baseUrl}/v2/shipping-order/fee`, payload, {
-                headers: { 'Token': CONFIG.GHN.token, 'ShopId': parseInt(CONFIG.GHN.shopId), 'Content-Type': 'application/json' }
-            });
-            if (ghnRes.data.code === 200) return res.json({ success: true, fee: ghnRes.data.data.total });
-            else return res.status(400).json({ success: false, message: ghnRes.data.message });
-        } catch (apiErr) { return res.status(400).json({ success: false, message: "Lỗi kết nối GHN" }); }
-    } catch (err) { res.status(500).json({ success: false, message: "Lỗi hệ thống" }); }
-};
+            // Calculate Total Weight & Dimensions from DB Products
+            // (We fetch products again to ensure security and accuracy)
+            let totalWeight = 0;
+            let maxLength = 0;
+            let maxWidth = 0;
+            let totalHeight = 0;
 
+            if (items && Array.isArray(items)) {
+                for (const item of items) {
+                    const product = await Product.findById(item.productId);
+                    if (product) {
+                        const qty = parseInt(item.quantity) || 1;
+
+                        // Use product properties (defaulting if not set)
+                        const pWeight = product.weight || 500;
+                        const pLength = product.length || 30;
+                        const pWidth = product.width || 20;
+                        const pHeight = product.height || 10;
+
+                        totalWeight += (pWeight * qty);
+                        totalHeight += (pHeight * qty); // Stack items vertically
+
+                        // Find largest length/width for the box
+                        if (pLength > maxLength) maxLength = pLength;
+                        if (pWidth > maxWidth) maxWidth = pWidth;
+                    }
+                }
+            }
+
+            // Fallbacks if no items found or calc failed
+            if (totalWeight === 0) totalWeight = 2000;
+            if (maxLength === 0) maxLength = 30;
+            if (maxWidth === 0) maxWidth = 20;
+            if (totalHeight === 0) totalHeight = 10;
+
+            // Call Service
+            const dataForFee = {
+                districtId: parseInt(districtId),
+                wardCode: wardCode.toString(),
+                height: totalHeight,
+                length: maxLength,
+                width: maxWidth,
+                weight: totalWeight,
+                orderAmount: parseInt(orderAmount) || 0
+            };
+
+            const ghnRes = await ghnService.calculateFee(dataForFee);
+
+            if (ghnRes && ghnRes.code === 200) {
+                return res.json({ success: true, fee: ghnRes.data.total });
+            } else {
+                return res.status(400).json({ success: false, message: ghnRes?.message || "Lỗi tính phí GHN" });
+            }
+        } catch (apiErr) {
+            console.error(apiErr);
+            return res.status(400).json({ success: false, message: "Lỗi kết nối GHN" });
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: "Lỗi hệ thống" });
+    }
+};
 // --- ĐẶT HÀNG (PLACE ORDER) ---
 exports.placeOrder = async (req, res) => {
     try {
@@ -406,77 +459,68 @@ exports.trackOrder = async (req, res) => {
         const order = await Order.findById(orderId);
         if (!order) return res.render('404', { message: "Không tìm thấy đơn hàng" });
 
-        let trackingLogs = [];
-        let ghnStatus = "";
+        let displayLogs = []; // Mảng chung cho cả GHN và Local
 
         // ===============================================
-        // TRƯỜNG HỢP 1: ĐƠN GHN (Lấy từ API GHN - Giữ nguyên)
+        // TRƯỜNG HỢP 1: ĐƠN GHN (Lấy từ API GHN)
         // ===============================================
         if (order.ghn_order_code) {
             try {
                 const ghnData = await ghnService.getOrderDetail(order.ghn_order_code);
-                if (ghnData && ghnData.data) {
-                    trackingLogs = ghnData.data.logs || [];
-                    ghnStatus = ghnData.data.status;
-
-                    // (Giữ nguyên logic map status GHN -> DB của bạn ở đây...)
-                    // ...
+                if (ghnData && ghnData.data && ghnData.data.logs) {
+                    // Map log của GHN sang chuẩn chung
+                    displayLogs = ghnData.data.logs.map(log => ({
+                        status: log.status, // picking, delivering...
+                        status_text: log.status_name || log.status,
+                        time: new Date(log.action_at || log.updated_date),
+                        desc: log.location ? log.location.address : ''
+                    }));
                 }
             } catch (e) { console.error("Lỗi GHN Track:", e.message); }
         }
 
         // ===============================================
-        // TRƯỜNG HỢP 2: ĐƠN LOCAL (Lấy từ DB chuẩn từng giây)
+        // TRƯỜNG HỢP 2: ĐƠN LOCAL (Lấy từ DB chính xác từng giây)
         // ===============================================
         else {
-            // 1. Log mặc định: Đặt hàng thành công (Lấy createdAt gốc)
-            trackingLogs.push({
-                status: 'placed',
-                status_name: 'Đặt hàng thành công',
-                action_at: order.createdAt, // Giờ đặt hàng chuẩn
-                location: { address: 'Hệ thống' }
-            });
+            // Định nghĩa Text hiển thị cho đẹp
+            const localStatusMap = {
+                'Pending': { text: 'Đặt hàng thành công', icon: 'fa-shopping-bag' },
+                'Paid': { text: 'Thanh toán thành công', icon: 'fa-credit-card' },
+                'Confirmed': { text: 'Đã xác nhận đơn hàng', icon: 'fa-check-double' },
+                'Processing': { text: 'Đang đóng gói', icon: 'fa-box-open' },
+                'Shipping': { text: 'Đang giao hàng', icon: 'fa-motorcycle' },
+                'Completed': { text: 'Giao thành công', icon: 'fa-flag-checkered' },
+                'Cancelled': { text: 'Đã hủy đơn', icon: 'fa-times' },
+                'Returned': { text: 'Đã trả hàng', icon: 'fa-undo' }
+            };
 
-            // 2. Lấy các log trạng thái tiếp theo từ DB (order.trackingLogs)
             if (order.trackingLogs && order.trackingLogs.length > 0) {
-                // Định nghĩa tên hiển thị cho đẹp
-                const statusNameMap = {
-                    'Confirmed': 'Đã xác nhận đơn hàng',
-                    'Processing': 'Đang chuẩn bị hàng',
-                    'Shipping': 'Shipper đang đi giao',
-                    'Completed': 'Giao hàng thành công',
-                    'Cancelled': 'Đã hủy đơn hàng',
-                    'Returned': 'Đã trả hàng về shop'
-                };
-
-                // Định nghĩa mã status (để EJS chọn icon)
-                const statusCodeMap = {
-                    'Confirmed': 'confirmed',
-                    'Processing': 'picking',
-                    'Shipping': 'picking', // Dùng icon xe máy
-                    'Completed': 'delivered',
-                    'Cancelled': 'cancel',
-                    'Returned': 'return'
-                };
-
-                order.trackingLogs.forEach(log => {
-                    trackingLogs.push({
-                        status: statusCodeMap[log.status] || 'unknown',
-                        status_name: statusNameMap[log.status] || log.status,
-                        action_at: log.action_at, // 🔥 Lấy giờ thật trong DB
-                        location: { address: 'Shop' }
-                    });
+                displayLogs = order.trackingLogs.map(log => ({
+                    status: log.status,
+                    status_text: localStatusMap[log.status]?.text || log.status,
+                    time: new Date(log.action_at), // Lấy giờ thật trong DB
+                    desc: log.note || 'Hệ thống cập nhật',
+                    icon: localStatusMap[log.status]?.icon || 'fa-circle' // Truyền icon sang view luôn
+                }));
+            } else {
+                // Fallback nếu đơn cũ chưa có logs (Dùng tạm createdAt)
+                displayLogs.push({
+                    status: 'Pending',
+                    status_text: 'Đặt hàng thành công',
+                    time: order.createdAt,
+                    desc: 'Hệ thống',
+                    icon: 'fa-shopping-bag'
                 });
             }
 
-            // Đảo ngược để mới nhất lên đầu (giống GHN)
-            trackingLogs.reverse();
+            // Sắp xếp mới nhất lên đầu
+            displayLogs.sort((a, b) => b.time - a.time);
         }
 
         res.render('user/order-tracking', {
             order: order,
-            trackingLogs: trackingLogs,
-            ghnStatus: ghnStatus,
+            logs: displayLogs, // Gửi mảng đã xử lý sang View
             user: req.session.user || null,
             cartCount: req.session.cartCount || 0
         });

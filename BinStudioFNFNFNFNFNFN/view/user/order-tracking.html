@@ -203,7 +203,6 @@
     </style>
 </head>
 <body>
-
     <div class="track-header">
         <% if (order.ghn_order_code) { %>
         <div style="font-size: 40px; margin-bottom: 10px;"><i class="fas fa-shipping-fast"></i></div>
@@ -212,113 +211,45 @@
         <% } else { %>
         <div style="font-size: 40px; margin-bottom: 10px;"><i class="fas fa-truck-pickup"></i></div>
         <h2>BinStudio Delivery</h2>
-        <p>Giao hàng nội bộ chuyên nghiệp</p>
+        <p>Giao hàng nội bộ</p>
         <% } %>
     </div>
 
     <div class="container">
         <div class="card">
-            <div class="info-group">
-                <div>
-                    <span class="info-label">Mã đơn hàng</span>
-                    <span class="info-value">#<%= order.orderCode %></span>
-                </div>
-                <span class="badge"><%= (order.ghn_order_code) ? 'GHN Express' : 'Local Delivery' %></span>
-            </div>
-            <div class="info-group" style="display: block;">
-                <span class="info-label">Địa chỉ nhận hàng</span>
-                <div style="margin-top: 8px; font-size: 14px;">
-                    <strong><%= order.userInfo.fullName %></strong> - <%= order.userInfo.phone %><br>
-                    <span style="color: var(--text-sub);"><%= order.userInfo.address %></span>
-                </div>
-            </div>
         </div>
 
         <div class="card">
             <div class="timeline-box">
                 <ul class="timeline">
-                    <%
-                    // 1. ĐỊNH NGHĨA BỘ TRẠNG THÁI RIÊNG CHO LOCAL
-                    const localSteps = [
-                    { key: 'Pending', text: 'Đặt hàng thành công', icon: 'fa-shopping-bag', desc: 'Đơn hàng đã được hệ thống ghi nhận.' },
-                    { key: 'Confirmed', text: 'Đã xác nhận đơn hàng', icon: 'fa-check-double', desc: 'Shop đã kiểm tra và xác nhận đơn hàng của bạn.' },
-                    { key: 'Processing', text: 'Đang chuẩn bị hàng', icon: 'fa-box-open', desc: 'Sản phẩm đang được đóng gói kỹ lưỡng.' },
-                    { key: 'Shipping', text: 'Đang giao hàng', icon: 'fa-motorcycle', desc: 'Shipper đang trên đường giao hàng đến bạn.' },
-                    { key: 'Completed', text: 'Giao thành công', icon: 'fa-flag-checkered', desc: 'Đơn hàng đã được bàn giao thành công.' },
-                    { key: 'Returned', text: 'Đã hoàn trả hàng', icon: 'fa-undo-alt', desc: 'Đơn hàng đã được hoàn về kho của Shop.' }
-                    ];
-
-                    // 2. ĐỊNH NGHĨA MAP CHO GHN (Giữ nguyên logic API)
-                    const ghnStatusMap = {
-                    'ready_to_pick': { text: 'Chờ lấy hàng', icon: 'fa-box' },
-                    'picking': { text: 'Shipper đang đến lấy', icon: 'fa-truck-pickup' },
-                    'picked': { text: 'Đã lấy hàng', icon: 'fa-box-open' },
-                    'storing': { text: 'Đã nhập kho', icon: 'fa-warehouse' },
-                    'transporting': { text: 'Đang luân chuyển', icon: 'fa-truck-moving' },
-                    'delivering': { text: 'Đang giao hàng', icon: 'fa-motorcycle' },
-                    'delivered': { text: 'Giao thành công', icon: 'fa-check-circle' },
-                    'cancel': { text: 'Đơn đã hủy', icon: 'fa-times-circle' },
-                    'return': { text: 'Đang hoàn trả', icon: 'fa-undo' }
-                    };
-
-                    // --- TRƯỜNG HỢP A: ĐƠN GHN (HIỂN THỊ THEO LOG API) ---
-                    if (order.ghn_order_code && trackingLogs && trackingLogs.length > 0) {
-                    trackingLogs.forEach((log, index) => {
-                    let sKey = (log.status || '').toLowerCase();
-                    if(sKey === 'finish') sKey = 'delivered';
-                    const conf = ghnStatusMap[sKey] || { text: log.status_name, icon: 'fa-circle' };
+                    <% if (logs && logs.length > 0) { %>
+                    <% logs.forEach((log, index) => {
+                    // Xác định icon nếu chưa có (cho GHN)
+                    let iconClass = log.icon || 'fa-circle';
+                    if(!log.icon) {
+                    if(log.status.includes('pick')) iconClass = 'fa-truck-pickup';
+                    else if(log.status.includes('deliver')) iconClass = 'fa-motorcycle';
+                    else if(log.status === 'delivered') iconClass = 'fa-check-circle';
+                    }
                     %>
                     <li class="t-item <%= index === 0 ? 'active' : '' %>">
-                        <div class="t-icon"><i class="fas <%= conf.icon %>"></i></div>
+                        <div class="t-icon"><i class="fas <%= iconClass %>"></i></div>
                         <div class="t-content">
-                            <div class="t-time"><%= new Date(log.action_at || log.updated_date).toLocaleString('vi-VN') %></div>
-                            <div class="t-status"><%= conf.text %></div>
-                            <% if (log.location && log.location.address) { %>
-                            <div class="t-desc"><i class="fas fa-map-marker-alt"></i> <%= log.location.address %></div>
+                            <div class="t-time">
+                                <%= log.time.toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' }) %>
+                            </div>
+                            <div class="t-status"><%= log.status_text %></div>
+                            <% if (log.desc) { %>
+                            <div class="t-desc"><%= log.desc %></div>
                             <% } %>
                         </div>
                     </li>
-                    <%
-                    });
-                    }
-                    // --- TRƯỜNG HỢP B: ĐƠN LOCAL (HIỂN THỊ THEO QUY TRÌNH NỘI BỘ) ---
-                    else {
-                    // Tìm vị trí trạng thái hiện tại trong quy trình
-                    const currentIdx = localSteps.findIndex(s => s.key === order.status);
-
-                    // Nếu đơn bị Hủy hoặc Hoàn trả (Trạng thái đặc biệt)
-                    if (['Cancelled', 'Returned'].includes(order.status)) { %>
-                    <li class="t-item active">
-                        <div class="t-icon" style="background: #ef4444; border-color: #ef4444; color: white;">
-                            <i class="fas <%= order.status === 'Cancelled' ? 'fa-times' : 'fa-undo' %>"></i>
-                        </div>
-                        <div class="t-content">
-                            <div class="t-time"><%= new Date(order.updatedAt || order.createdAt).toLocaleString('vi-VN') %></div>
-                            <div class="t-status" style="color: #ef4444;">
-                                <%= order.status === 'Cancelled' ? 'Đơn hàng đã hủy' : 'Đơn hàng đã hoàn trả' %>
-                            </div>
-                            <div class="t-desc">Đơn hàng đã dừng quá trình xử lý.</div>
-                        </div>
+                    <% }); %>
+                    <% } else { %>
+                    <li class="t-item">
+                        <div class="t-content"><div class="t-desc">Chưa có thông tin hành trình.</div></div>
                     </li>
-                    <% }
-
-                    // Hiển thị các bước đã qua (Dựng ngược từ trạng thái hiện tại lên)
-                    // Chỉ hiển thị các bước ĐÃ HOÀN THÀNH hoặc ĐANG Ở ĐÓ
-                    const displaySteps = localSteps.slice(0, (currentIdx === -1 ? 1 : currentIdx + 1)).reverse();
-
-                    displaySteps.forEach((step, index) => { %>
-                    <li class="t-item <%= index === 0 ? 'active' : '' %>">
-                        <div class="t-icon"><i class="fas <%= step.icon %>"></i></div>
-                        <div class="t-content">
-                            <div class="t-time">
-                                <%= (index === 0) ? new Date(order.updatedAt || order.createdAt).toLocaleString('vi-VN') : '---' %>
-                            </div>
-                            <div class="t-status"><%= step.text %></div>
-                            <div class="t-desc"><%= step.desc %></div>
-                        </div>
-                    </li>
-                    <% });
-                    } %>
+                    <% } %>
                 </ul>
             </div>
 
@@ -330,4 +261,5 @@
         </div>
     </div>
 </body>
+</html>
 </html>

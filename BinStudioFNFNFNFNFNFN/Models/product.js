@@ -15,7 +15,15 @@ const productSchema = new mongoose.Schema({
         stock: { type: Number, default: 0 }     // Số lượng riêng của size đó
     }],
     isHidden: { type: Boolean, default: false },
-    isHot: { type: Boolean, default: false }
+    isHot: { type: Boolean, default: false },
+
+    weight: { type: Number, default: 500 },
+
+    // Kích thước đóng gói: Dài - Rộng - Cao (cm)
+    // GHN sẽ tính cước theo: Max(Khối lượng thực, Khối lượng quy đổi từ kích thước)
+    length: { type: Number, default: 30 }, // Dài 30cm
+    width: { type: Number, default: 20 }, // Rộng 20cm
+    height: { type: Number, default: 10 } // Cao 10cm
 });
 
 // Tạo một thuộc tính ảo (virtual) để tính TỔNG tồn kho hiển thị ra ngoài danh sách
