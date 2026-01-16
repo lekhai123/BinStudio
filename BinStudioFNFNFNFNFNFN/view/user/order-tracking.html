@@ -203,6 +203,7 @@
     </style>
 </head>
 <body>
+
     <div class="track-header">
         <% if (order.ghn_order_code) { %>
         <div style="font-size: 40px; margin-bottom: 10px;"><i class="fas fa-shipping-fast"></i></div>
@@ -217,26 +218,34 @@
 
     <div class="container">
         <div class="card">
+            <div class="info-group">
+                <div>
+                    <span class="info-label">Mã đơn hàng</span>
+                    <span class="info-value">#<%= order.orderCode %></span>
+                </div>
+                <span class="badge"><%= (order.ghn_order_code) ? 'GHN Express' : 'Local Delivery' %></span>
+            </div>
+            <div class="info-group" style="display: block;">
+                <span class="info-label">Địa chỉ nhận hàng</span>
+                <div style="margin-top: 8px; font-size: 14px;">
+                    <strong><%= order.userInfo.fullName %></strong> - <%= order.userInfo.phone %><br>
+                    <span style="color: var(--text-sub);"><%= order.userInfo.address %></span>
+                </div>
+            </div>
         </div>
 
         <div class="card">
             <div class="timeline-box">
                 <ul class="timeline">
                     <% if (logs && logs.length > 0) { %>
-                    <% logs.forEach((log, index) => {
-                    // Xác định icon nếu chưa có (cho GHN)
-                    let iconClass = log.icon || 'fa-circle';
-                    if(!log.icon) {
-                    if(log.status.includes('pick')) iconClass = 'fa-truck-pickup';
-                    else if(log.status.includes('deliver')) iconClass = 'fa-motorcycle';
-                    else if(log.status === 'delivered') iconClass = 'fa-check-circle';
-                    }
-                    %>
+                    <% logs.forEach((log, index) => { %>
                     <li class="t-item <%= index === 0 ? 'active' : '' %>">
-                        <div class="t-icon"><i class="fas <%= iconClass %>"></i></div>
+                        <div class="t-icon">
+                            <i class="fas <%= log.icon || 'fa-circle' %>"></i>
+                        </div>
                         <div class="t-content">
                             <div class="t-time">
-                                <%= log.time.toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' }) %>
+                                <%= log.time ? log.time.toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' }) : '' %>
                             </div>
                             <div class="t-status"><%= log.status_text %></div>
                             <% if (log.desc) { %>
@@ -261,5 +270,4 @@
         </div>
     </div>
 </body>
-</html>
 </html>

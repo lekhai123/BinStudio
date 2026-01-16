@@ -459,68 +459,75 @@ exports.trackOrder = async (req, res) => {
         const order = await Order.findById(orderId);
         if (!order) return res.render('404', { message: "Không tìm thấy đơn hàng" });
 
-        let displayLogs = []; // Mảng chung cho cả GHN và Local
+        let allLogs = [];
 
-        // ===============================================
-        // TRƯỜNG HỢP 1: ĐƠN GHN (Lấy từ API GHN)
-        // ===============================================
+        // --- BƯỚC 1: LẤY LOG NỘI BỘ (Từ database của bạn) ---
+        const statusMap = {
+            'Pending': { text: 'Đặt hàng thành công', icon: 'fa-shopping-bag' },
+            'Paid': { text: 'Thanh toán thành công', icon: 'fa-credit-card' },
+            'Confirmed': { text: 'Đã xác nhận đơn hàng', icon: 'fa-check-double' },
+            'Processing': { text: 'Đang đóng gói', icon: 'fa-box-open' },
+            'Shipping': { text: 'Bàn giao cho đơn vị vận chuyển', icon: 'fa-truck-loading' },
+            'Completed': { text: 'Giao hàng thành công', icon: 'fa-flag-checkered' },
+            'Cancelled': { text: 'Đã hủy đơn', icon: 'fa-times' },
+            'Returned': { text: 'Đã trả hàng', icon: 'fa-undo' }
+        };
+
+        if (order.trackingLogs && order.trackingLogs.length > 0) {
+            allLogs = order.trackingLogs.map(log => ({
+                status_key: log.status,
+                status_text: statusMap[log.status]?.text || log.status,
+                time: new Date(log.action_at),
+                desc: log.note || 'Hệ thống cập nhật',
+                icon: statusMap[log.status]?.icon || 'fa-circle',
+                source: 'local'
+            }));
+        } else {
+            allLogs.push({
+                status_text: 'Đặt hàng thành công',
+                time: order.createdAt,
+                desc: 'Hệ thống ghi nhận',
+                icon: 'fa-shopping-bag',
+                source: 'local'
+            });
+        }
+
+        // --- BƯỚC 2: LẤY LOG GHN (Nếu có) ---
         if (order.ghn_order_code) {
             try {
                 const ghnData = await ghnService.getOrderDetail(order.ghn_order_code);
-                if (ghnData && ghnData.data && ghnData.data.logs) {
-                    // Map log của GHN sang chuẩn chung
-                    displayLogs = ghnData.data.logs.map(log => ({
-                        status: log.status, // picking, delivering...
-                        status_text: log.status_name || log.status,
+                if (ghnData?.data?.logs) {
+                    const ghnLogs = ghnData.data.logs.map(log => ({
+                        status_key: log.status,
+                        status_text: log.status_name,
                         time: new Date(log.action_at || log.updated_date),
-                        desc: log.location ? log.location.address : ''
+                        desc: log.location?.address || 'Hệ thống GHN',
+                        icon: 'fa-truck',
+                        source: 'ghn'
                     }));
+
+                    // Gom chung vào mảng
+                    allLogs = [...allLogs, ...ghnLogs];
                 }
-            } catch (e) { console.error("Lỗi GHN Track:", e.message); }
+            } catch (e) { console.error("Lỗi lấy log GHN:", e.message); }
         }
 
-        // ===============================================
-        // TRƯỜNG HỢP 2: ĐƠN LOCAL (Lấy từ DB chính xác từng giây)
-        // ===============================================
-        else {
-            // Định nghĩa Text hiển thị cho đẹp
-            const localStatusMap = {
-                'Pending': { text: 'Đặt hàng thành công', icon: 'fa-shopping-bag' },
-                'Paid': { text: 'Thanh toán thành công', icon: 'fa-credit-card' },
-                'Confirmed': { text: 'Đã xác nhận đơn hàng', icon: 'fa-check-double' },
-                'Processing': { text: 'Đang đóng gói', icon: 'fa-box-open' },
-                'Shipping': { text: 'Đang giao hàng', icon: 'fa-motorcycle' },
-                'Completed': { text: 'Giao thành công', icon: 'fa-flag-checkered' },
-                'Cancelled': { text: 'Đã hủy đơn', icon: 'fa-times' },
-                'Returned': { text: 'Đã trả hàng', icon: 'fa-undo' }
-            };
+        // --- BƯỚC 3: XỬ LÝ GOM NHÓM & SẮP XẾP ---
+        // 1. Sắp xếp theo thời gian mới nhất lên đầu
+        allLogs.sort((a, b) => b.time - a.time);
 
-            if (order.trackingLogs && order.trackingLogs.length > 0) {
-                displayLogs = order.trackingLogs.map(log => ({
-                    status: log.status,
-                    status_text: localStatusMap[log.status]?.text || log.status,
-                    time: new Date(log.action_at), // Lấy giờ thật trong DB
-                    desc: log.note || 'Hệ thống cập nhật',
-                    icon: localStatusMap[log.status]?.icon || 'fa-circle' // Truyền icon sang view luôn
-                }));
-            } else {
-                // Fallback nếu đơn cũ chưa có logs (Dùng tạm createdAt)
-                displayLogs.push({
-                    status: 'Pending',
-                    status_text: 'Đặt hàng thành công',
-                    time: order.createdAt,
-                    desc: 'Hệ thống',
-                    icon: 'fa-shopping-bag'
-                });
-            }
-
-            // Sắp xếp mới nhất lên đầu
-            displayLogs.sort((a, b) => b.time - a.time);
-        }
+        // 2. (Tùy chọn) Lọc trùng: Nếu trong cùng 1 phút có 2 log cùng trạng thái thì lấy cái mới nhất
+        const seen = new Set();
+        const filteredLogs = allLogs.filter(log => {
+            const duplicateKey = `${log.status_key}-${log.time.getMinutes()}`;
+            if (seen.has(duplicateKey)) return false;
+            seen.add(duplicateKey);
+            return true;
+        });
 
         res.render('user/order-tracking', {
             order: order,
-            logs: displayLogs, // Gửi mảng đã xử lý sang View
+            logs: filteredLogs,
             user: req.session.user || null,
             cartCount: req.session.cartCount || 0
         });

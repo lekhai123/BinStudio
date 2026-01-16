@@ -85,17 +85,25 @@ exports.updateOrderStatus = async (req, res) => {
         }
 
         // --- 7. LƯU DATABASE ---
-        order.status = newStatus;
-        order.trackingLogs.push({
-            status: newStatus,
-            action_at: new Date(), // Giờ bấm nút xác nhận
-            note: 'Admin cập nhật'
-        });
-        await order.save();
-        await Log.create({
-            type: 'ORDER',
-            message: `Admin đã cập nhật đơn hàng #${order.orderCode} sang trạng thái: ${order.status}`
-        });
+        if (order.status !== newStatus) {
+            order.status = newStatus;
+
+            // 🔥 QUAN TRỌNG: Ghi log thời gian thực vào DB
+            // Để bên tracking hiển thị đúng giờ Admin bấm nút
+            order.trackingLogs.push({
+                status: newStatus,
+                action_at: new Date(),
+                note: `Admin cập nhật: ${newStatus}`
+            });
+
+            await order.save();
+
+            // Ghi log hệ thống (cho Admin xem lịch sử thao tác)
+            await Log.create({
+                type: 'ORDER',
+                message: `Admin đã cập nhật đơn #${order.orderCode} sang ${newStatus}`
+            });
+        }
         res.redirect('/aHyIsnxH18Ahpwww/orders');
 
 

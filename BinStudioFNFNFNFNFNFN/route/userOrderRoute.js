@@ -14,5 +14,6 @@ router.get('/order', orderController.getUserOrders);
 router.post('/repay-order', orderController.repayOrder);
 
 router.get('/order/tracking/:id', orderController.trackOrder);
+router.post('/order/ghn-webhook', orderController.ghnWebhook).
 
 module.exports = router;
