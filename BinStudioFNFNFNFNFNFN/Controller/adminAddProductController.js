@@ -50,7 +50,7 @@ exports.addProduct = async (req, res) => {
         await newProduct.save();
 
         // 6. Redirect về trang quản lý (Đảm bảo đường dẫn chính xác)
-        res.redirect('/admin/products?success=true');
+        res.redirect('/aHyIsnxH18Ahpwww/products?success=true');
 
     } catch (err) {
         console.error("Lỗi Controller AddProduct:", err);

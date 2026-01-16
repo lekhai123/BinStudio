@@ -4,7 +4,7 @@ const productSchema = new mongoose.Schema({
     name: { type: String, required: true },
     price: { type: Number, required: true },
     description: { type: String },
-    category: { type: String, enum: ['vest', 'quan', 'aosomi', 'aodai', 'phukien'] },
+    category: { type: String },
     image: { type: [String] },
     cloudinary_id: { type: String },
 

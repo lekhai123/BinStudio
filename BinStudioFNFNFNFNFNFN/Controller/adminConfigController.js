@@ -46,7 +46,7 @@ exports.saveConfig = async (req, res) => {
         await new Log({ type: 'INFO', message: "Admin đã cập nhật cấu hình hệ thống API." }).save();
 
         // Chú ý: Redirect viết liền mạch để tránh lỗi %20
-        res.redirect('/admin/config?success=true');
+        res.redirect('/aHyIsnxH18Ahpwww/config?success=true');
     } catch (err) {
         console.error("Lỗi saveConfig:", err);
         res.status(500).send("Lỗi khi lưu cấu hình");
@@ -60,7 +60,7 @@ exports.clearLogs = async (req, res) => {
         // Ghi lại hành động xóa log vào một bản ghi mới
         await new Log({ type: 'WARNING', message: "Toàn bộ nhật ký hệ thống đã bị xóa bởi Admin." }).save();
 
-        res.redirect('/admin/config');
+        res.redirect('/aHyIsnxH18Ahpwww/config');
     } catch (err) {
         console.error("Lỗi clearLogs:", err);
         res.status(500).send("Lỗi khi xóa log");

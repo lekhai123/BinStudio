@@ -195,7 +195,7 @@ exports.updateHomepageConfig = async (req, res) => {
 
         // 5. Lưu và Quay về
         await content.save();
-        res.redirect('/admin/homepage?success=true');
+        res.redirect('/aHyIsnxH18Ahpwww/homepage?success=true');
 
     } catch (err) {
         // 1. In lỗi ra cửa sổ dòng lệnh (Terminal) để bạn đọc

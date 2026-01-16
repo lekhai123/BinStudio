@@ -262,12 +262,12 @@
         <aside class="sidebar">
             <h2>BinStudio Admin</h2>
             <ul class="sidebar-menu">
-                <li><a href="/admin">📊 Bảng điều khiển</a></li>
-                <li><a href="/admin/products" style="color: white;">📦 Quản lý Sản phẩm</a></li>
-                <li><a href="/admin/users">👥 Quản lý Người dùng</a></li>
-                <li><a href="/admin/orders">🧾 Đơn hàng & Doanh thu</a></li>
-                <li><a href="/admin/config">⚙️ Cấu hình API và Log</a></li>
-                <li><a href="/admin/homepage" style="color: white;">🏠 Chỉnh sửa Trang chủ</a></li>
+                <li><a href="/aHyIsnxH18Ahpwww">📊 Bảng điều khiển</a></li>
+                <li><a href="/aHyIsnxH18Ahpwww/products" style="color: white;">📦 Quản lý Sản phẩm</a></li>
+                <li><a href="/aHyIsnxH18Ahpwww/users">👥 Quản lý Người dùng</a></li>
+                <li><a href="/aHyIsnxH18Ahpwww/orders">🧾 Đơn hàng & Doanh thu</a></li>
+                <li><a href="/aHyIsnxH18Ahpwww/config">⚙️ Cấu hình API và Log</a></li>
+                <li><a href="/aHyIsnxH18Ahpwww/homepage" style="color: white;">🏠 Chỉnh sửa Trang chủ</a></li>
 
                 <li><a href="/">🏠 Quay lại Shop</a></li>
             </ul>
@@ -302,12 +302,12 @@
             <div class="card">
                 <div class="table-header">
                     <h3 style="color: #444;">Danh sách sản phẩm (<%= products.length %>)</h3>
-                    <a href="/admin/products/add-product" class="btn-primary">
+                    <a href="/aHyIsnxH18Ahpwww/products/add-product" class="btn-primary">
                         + Thêm sản phẩm mới
                     </a>
                 </div>
 
-                <form action="/admin/products" method="GET" class="filter-bar">
+                <form action="/aHyIsnxH18Ahpwww/products" method="GET" class="filter-bar">
                     <div style="flex: 2; min-width: 200px;">
                         <input type="text" name="keyword" class="filter-input" style="width: 100%;"
                                placeholder="🔍 Nhập tên sản phẩm..."
@@ -329,7 +329,7 @@
                     <button type="submit" class="btn-filter">Lọc</button>
 
                     <% if (typeof queryData !== 'undefined' && (queryData.keyword || queryData.category)) { %>
-                    <a href="/admin/products" class="btn-reset">Xóa lọc</a>
+                    <a href="/aHyIsnxH18Ahpwww/products" class="btn-reset">Xóa lọc</a>
                     <% } %>
                 </form>
                 <table class="product-table">
@@ -383,18 +383,18 @@
                                     <% } %>
                                 </td>
                                 <td class="actions">
-                                    <a href="/admin/products/edit-product/<%= product._id %>">Sửa</a>
-                                    <form action="/admin/products/toggle-product/<%= product._id %>" method="POST" style="display:inline;">
+                                    <a href="/aHyIsnxH18Ahpwww/products/edit-product/<%= product._id %>">Sửa</a>
+                                    <form action="/aHyIsnxH18Ahpwww/products/toggle-product/<%= product._id %>" method="POST" style="display:inline;">
                                         <button type="submit">
                                             <%= product.isHidden ? 'Hiện' : 'Ẩn' %>
                                         </button>
                                     </form>
-                                    <form action="/admin/products/toggle-hot/<%= product._id %>" method="POST" style="display:inline;">
+                                    <form action="/aHyIsnxH18Ahpwww/products/toggle-hot/<%= product._id %>" method="POST" style="display:inline;">
                                         <button type="submit">
                                             <%= product.isHot ? '🔥Hot' : '⊘Hot' %>
                                         </button>
                                     </form>
-                                    <form action="/admin/products/delete-product/<%= product._id %>"
+                                    <form action="/aHyIsnxH18Ahpwww/products/delete-product/<%= product._id %>"
                                           method="POST"
                                           style="display:inline;"
                                           onsubmit="return confirm('Xác nhận xóa?');">

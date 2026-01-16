@@ -231,12 +231,12 @@
         <aside class="sidebar">
             <h2>BinStudio Admin</h2>
             <ul class="sidebar-menu">
-                <li><a href="/admin">📊 Bảng điều khiển</a></li>
-                <li><a href="/admin/products">📦 Quản lý Sản phẩm</a></li>
-                <li><a href="/admin/users">👥 Quản lý Người dùng</a></li>
-                <li><a href="/admin/orders" class="active" style="color: white;">🧾 Đơn hàng & Doanh thu</a></li>
-                <li><a href="/admin/config">⚙️ Cấu hình API và Log</a></li>
-                <li><a href="/admin/homepage" style="color: white; font-weight: bold;">🏠 Chỉnh sửa Trang chủ</a></li>
+                <li><a href="/aHyIsnxH18Ahpwww">📊 Bảng điều khiển</a></li>
+                <li><a href="/aHyIsnxH18Ahpwww/products">📦 Quản lý Sản phẩm</a></li>
+                <li><a href="/aHyIsnxH18Ahpwww/users">👥 Quản lý Người dùng</a></li>
+                <li><a href="/aHyIsnxH18Ahpwww/orders" class="active" style="color: white;">🧾 Đơn hàng & Doanh thu</a></li>
+                <li><a href="/aHyIsnxH18Ahpwww/config">⚙️ Cấu hình API và Log</a></li>
+                <li><a href="/aHyIsnxH18Ahpwww/homepage" style="color: white; font-weight: bold;">🏠 Chỉnh sửa Trang chủ</a></li>
                 <li><a href="/" style="color: var(--accent); margin-top: 20px;">🏠 Quay lại Shop</a></li>
             </ul>
         </aside>
@@ -273,7 +273,7 @@
                     <h3>Danh sách đơn hàng (<%= orders.length %> đơn)</h3>
                 </div>
 
-                <form action="/admin/orders" method="GET" class="filter-form">
+                <form action="/aHyIsnxH18Ahpwww/orders" method="GET" class="filter-form">
                     <div style="flex: 2; min-width: 250px;">
                         <input type="text" name="keyword" class="filter-input" style="width: 100%;"
                                placeholder="🔍 Nhập Mã đơn, Tên khách, SĐT hoặc Email..."
@@ -297,7 +297,7 @@
                     </div>
                     <button type="submit" class="btn-filter">Lọc</button>
                     <% if (typeof queryData !== 'undefined' && (queryData.keyword || queryData.date || queryData.status)) { %>
-                    <a href="/admin/orders" class="btn-reset">Xóa lọc</a>
+                    <a href="/aHyIsnxH18Ahpwww/orders" class="btn-reset">Xóa lọc</a>
                     <% } %>
                 </form>
 
@@ -337,7 +337,7 @@
                             </td>
 
                             <td>
-                                <form action="/admin/orders/update-payment/<%= order._id %>" method="POST">
+                                <form action="/aHyIsnxH18Ahpwww/orders/update-payment/<%= order._id %>" method="POST">
                                     <%
                                     let payStyle = 'color: #721c24; background: #f8d7da;';
                                     if (order.paymentStatus === 'Paid') { payStyle = 'color: #155724; background: #d4edda;'; }
@@ -379,7 +379,7 @@
                                 <span style="color: #666; font-size: 12px; font-style: italic;">🔒 Đã đóng</span>
 
                                 <% } else { %>
-                                <form action="/admin/orders/update-status/<%= order._id %>" method="POST">
+                                <form action="/aHyIsnxH18Ahpwww/orders/update-status/<%= order._id %>" method="POST">
                                     <select name="status"
                                             onchange="
                                             const val=this.value;
@@ -463,7 +463,7 @@
                             <td colspan="7" style="text-align: center; padding: 40px; color: #888;">
                                 <div style="font-size: 40px; margin-bottom: 10px;">🔍</div>
                                 <p>Không tìm thấy đơn hàng nào phù hợp.</p>
-                                <a href="/admin/orders" style="color: var(--accent); font-weight: bold; text-decoration: none;">Xem tất cả</a>
+                                <a href="/aHyIsnxH18Ahpwww/orders" style="color: var(--accent); font-weight: bold; text-decoration: none;">Xem tất cả</a>
                             </td>
                         </tr>
                         <% } %>
@@ -518,7 +518,7 @@
         async function pushToGHN(orderId) {
             if (!confirm("Tạo đơn vận chuyển GHN cho đơn hàng này?")) return;
             try {
-                const res = await fetch(`/admin/order/push-ghn/${orderId}`, { method: 'POST' });
+                const res = await fetch(`/aHyIsnxH18Ahpwww/order/push-ghn/${orderId}`, { method: 'POST' });
                 const data = await res.json();
                 if (data.success) { alert(data.message); location.reload(); }
                 else { alert(data.message); }

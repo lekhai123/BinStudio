@@ -11,7 +11,7 @@
         !req.session.user ||
         req.session.user.role !== 'admin'
     ) {
-        return res.redirect('/admin/login');
+        return res.redirect('/aHyIsnxH18Ahpwww/login');
     }
 
     next();

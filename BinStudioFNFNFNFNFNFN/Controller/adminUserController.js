@@ -30,7 +30,7 @@ exports.toggleUserLock = async (req, res) => {
         }
 
         // Điều hướng về trang danh sách (Viết liền, không dấu cách)
-        res.redirect('/admin/users');
+        res.redirect('/aHyIsnxH18Ahpwww/users');
     } catch (err) {
         console.error("Lỗi toggleUserLock:", err);
         res.status(500).send("Lỗi thao tác trên tài khoản người dùng");
@@ -53,7 +53,7 @@ exports.toggleUserRole = async (req, res) => {
                 message: `Admin thay đổi vai trò user ${user.email} sang: ${user.role.toUpperCase()}`
             });
         }
-        res.redirect('/admin/users');
+        res.redirect('/aHyIsnxH18Ahpwww/users');
     } catch (err) {
         console.error("Lỗi toggleUserRole:", err);
         res.status(500).send("Lỗi cập nhật quyền");
@@ -78,7 +78,7 @@ exports.changeUserPassword = async (req, res) => {
             console.log(`Đã đổi mật khẩu cho ${user.email}`);
         }
 
-        res.redirect('/admin/users');
+        res.redirect('/aHyIsnxH18Ahpwww/users');
     } catch (err) {
         console.error("Lỗi changeUserPassword:", err);
         res.status(500).send("Lỗi đổi mật khẩu");

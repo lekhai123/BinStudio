@@ -169,14 +169,14 @@
     <aside class="sidebar">
         <h2>BinStudio Admin</h2>
         <ul class="sidebar-menu">
-            <li><a href="/admin">📊 Bảng điều khiển</a></li>
+            <li><a href="/aHyIsnxH18Ahpwww">📊 Bảng điều khiển</a></li>
 
-            <li><a href="/admin/products">📦 Quản lý Sản phẩm</a></li>
+            <li><a href="/aHyIsnxH18Ahpwww/products">📦 Quản lý Sản phẩm</a></li>
 
-            <li><a href="/admin/users">👥 Quản lý Người dùng</a></li>
-            <li><a href="/admin/orders">🧾 Đơn hàng & Doanh thu</a></li>
-            <li><a href="/admin/config">⚙️ Cấu hình API và Log</a></li>
-            <li><a href="/admin/homepage" style="color: white; font-weight: bold;">🏠 Chỉnh sửa Trang chủ</a></li>
+            <li><a href="/aHyIsnxH18Ahpwww/users">👥 Quản lý Người dùng</a></li>
+            <li><a href="/aHyIsnxH18Ahpwww/orders">🧾 Đơn hàng & Doanh thu</a></li>
+            <li><a href="/aHyIsnxH18Ahpwww/config">⚙️ Cấu hình API và Log</a></li>
+            <li><a href="/aHyIsnxH18Ahpwww/homepage" style="color: white; font-weight: bold;">🏠 Chỉnh sửa Trang chủ</a></li>
             <li><a href="/" style="color: var(--accent); margin-top: 20px;">🏠 Quay lại Shop</a></li>
         </ul>
     </aside>
@@ -229,7 +229,7 @@
                                 <i class="fas fa-key"></i> Đổi MK
                             </button>
 
-                            <form action="/admin/users/toggle-role/<%= u._id %>" method="POST" style="display:inline;">
+                            <form action="/aHyIsnxH18Ahpwww/users/toggle-role/<%= u._id %>" method="POST" style="display:inline;">
                                 <% if (u.role==='admin') { %>
                                 <button type="submit" class="btn-status btn-role" title="Hạ xuống User"
                                         onclick="return confirm('Bạn chắc chắn muốn hạ quyền Admin của <%= u.fullName %>?')">
@@ -244,7 +244,7 @@
                                 <% } %>
                             </form>
 
-                            <form action="/admin/users/toggle-lock/<%= u._id %>" method="POST" style="display:inline;">
+                            <form action="/aHyIsnxH18Ahpwww/users/toggle-lock/<%= u._id %>" method="POST" style="display:inline;">
                                 <% if (u.isLocked) { %>
                                 <button type="submit" class="btn-status btn-unlock">Mở</button>
                                 <% } else { %>
@@ -265,7 +265,7 @@
                     <h3>Đổi mật khẩu người dùng</h3>
                     <p style="margin-bottom: 15px; font-size: 13px; color: #666;">Đang đổi mật khẩu cho: <b id="modalUserName">...</b></p>
 
-                    <form id="changePassForm" action="/admin/users/change-password" method="POST">
+                    <form id="changePassForm" action="/aHyIsnxH18Ahpwww/users/change-password" method="POST">
                         <input type="hidden" name="userId" id="modalUserId">
 
                         <div class="form-group">

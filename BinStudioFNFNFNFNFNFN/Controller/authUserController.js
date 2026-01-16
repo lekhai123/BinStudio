@@ -114,7 +114,7 @@ exports.login = async (req, res) => {
                 }
 
                 // Điều hướng dựa trên quyền
-                const redirectPath = user.role === 'admin' ? '/admin' : '/';
+                const redirectPath = user.role === 'admin' ? '/aHyIsnxH18Ahpwww' : '/';
                 return res.redirect(redirectPath);
             });
         }

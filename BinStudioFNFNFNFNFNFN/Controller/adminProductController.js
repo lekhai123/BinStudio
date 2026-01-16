@@ -101,7 +101,7 @@ exports.createProduct = async (req, res) => {
         });
 
         await newProduct.save();
-        res.redirect('/admin/products');
+        res.redirect('/aHyIsnxH18Ahpwww/products');
     } catch (err) {
         console.error("Lỗi thêm sản phẩm:", err);
         res.status(500).send(`Lỗi Server: ${err.message}`);
@@ -116,7 +116,7 @@ exports.toggleVisibility = async (req, res) => {
             product.isHidden = !product.isHidden;
             await product.save();
         }
-        res.redirect('/admin/products');
+        res.redirect('/aHyIsnxH18Ahpwww/products');
     } catch (err) {
         res.status(500).send("Lỗi cập nhật trạng thái");
     }
@@ -130,7 +130,7 @@ exports.toggleHot = async (req, res) => {
             await product.save();
             req.flash('success', product.isHot ? 'Đã thêm vào mục Nổi Bật!' : 'Đã bỏ khỏi mục Nổi Bật!');
         }
-        res.redirect('/admin/products');
+        res.redirect('/aHyIsnxH18Ahpwww/products');
     } catch (err) {
         console.error(err);
         res.status(500).send("Lỗi hệ thống");
@@ -150,7 +150,7 @@ exports.deleteProduct = async (req, res) => {
             }
             await Product.findByIdAndDelete(req.params.id);
         }
-        res.redirect('/admin/products?success=true');
+        res.redirect('/aHyIsnxH18Ahpwww/products?success=true');
     } catch (err) {
         console.error("Lỗi xóa:", err);
         res.status(500).send("Lỗi khi xóa sản phẩm");
@@ -215,7 +215,7 @@ exports.updateProduct = async (req, res) => {
         await Product.findByIdAndUpdate(productId, {
             name, price: parseInt(price), description, variants, image: finalImages
         });
-        res.redirect('/admin/products?success=true');
+        res.redirect('/aHyIsnxH18Ahpwww/products?success=true');
     } catch (err) {
         console.error("Lỗi cập nhật:", err);
         res.status(500).send("Lỗi hệ thống: " + err.message);

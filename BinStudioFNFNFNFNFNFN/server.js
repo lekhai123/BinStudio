@@ -111,7 +111,7 @@ app.use(systemLog);
 app.use(injectUserData);
 
 app.use('/', userSharedRoutes); 
-app.use('/ayqmlSQOCNXSJsnq1891kazmsmiHSOQLSNXWUananwwu9910q2101ksnshshsw',adminSharedRoutes); 
+app.use('/aHyIsnxH18Ahpwww',adminSharedRoutes); 
 
 app.use('/', ghnRouter);
 

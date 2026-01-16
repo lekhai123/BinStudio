@@ -58,14 +58,14 @@
         <aside class="sidebar">
             <h2>BinStudio Admin</h2>
             <ul class="sidebar-menu">
-                <li><a href="/admin">📊 Bảng điều khiển</a></li>
+                <li><a href="/aHyIsnxH18Ahpwww">📊 Bảng điều khiển</a></li>
 
-                <li><a href="/admin/products">📦 Quản lý Sản phẩm</a></li>
+                <li><a href="/aHyIsnxH18Ahpwww/products">📦 Quản lý Sản phẩm</a></li>
 
-                <li><a href="/admin/users">👥 Quản lý Người dùng</a></li>
-                <li><a href="/admin/orders">🧾 Đơn hàng & Doanh thu</a></li>
-                <li><a href="/admin/config">⚙️ Cấu hình API và Log</a></li>
-                <li><a href="/admin/homepage" style="color: #4fc3f7;">🏠 Chỉnh sửa Trang chủ</a></li>
+                <li><a href="/aHyIsnxH18Ahpwww/users">👥 Quản lý Người dùng</a></li>
+                <li><a href="/aHyIsnxH18Ahpwww/orders">🧾 Đơn hàng & Doanh thu</a></li>
+                <li><a href="/aHyIsnxH18Ahpwww/config">⚙️ Cấu hình API và Log</a></li>
+                <li><a href="/aHyIsnxH18Ahpwww/homepage" style="color: #4fc3f7;">🏠 Chỉnh sửa Trang chủ</a></li>
                 <li><a href="/" style="color: var(--accent);">🏠 Quay lại Shop</a></li>
             </ul>
         </aside>
@@ -145,7 +145,7 @@
                                 </span>
                             </td>
                             <td>
-                                <form action="/admin/users/toggle-lock/<%= u._id %>" method="POST">
+                                <form action="/aHyIsnxH18Ahpwww/users/toggle-lock/<%= u._id %>" method="POST">
                                     <button type="submit" style="color: <%= u.isLocked ? 'green' : 'red' %>; border: none; background: none; cursor: pointer;">
                                         <%= u.isLocked ? 'Mở khóa' : 'Khóa TK' %>
                                     </button>
@@ -228,7 +228,7 @@
 
                 // Gọi vào API mình vừa viết ở Bước 1
                 // Lưu ý: Nếu router admin của bạn là /admin, thì đường dẫn là /admin/api/revenue-data
-                const response = await fetch(`/admin/api/dashboard-chart?start=${start}&end=${end}`);
+                const response = await fetch(`/aHyIsnxH18Ahpwww/api/dashboard-chart?start=${start}&end=${end}`);
 
                 if (!response.ok) throw new Error("Lỗi kết nối API");
 

@@ -34,7 +34,7 @@ exports.postLogin = async (req, res) => {
                     return res.render('admin/loginAdmin', { error: "Lỗi lưu phiên đăng nhập!" });
                 }
                 // Redirect về trang Dashboard sau khi session đã ghi vào DB xong
-                return res.redirect('/admin');
+                return res.redirect('/aHyIsnxH18Ahpwww');
             });
         }
 

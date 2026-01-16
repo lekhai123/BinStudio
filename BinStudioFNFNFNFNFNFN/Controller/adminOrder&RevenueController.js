@@ -96,7 +96,7 @@ exports.updateOrderStatus = async (req, res) => {
             type: 'ORDER',
             message: `Admin đã cập nhật đơn hàng #${order.orderCode} sang trạng thái: ${order.status}`
         });
-        res.redirect('/admin/orders');
+        res.redirect('/aHyIsnxH18Ahpwww/orders');
 
 
     } catch (err) {
@@ -229,7 +229,7 @@ exports.updatePaymentStatus = async (req, res) => {
             message: `Cập nhật THANH TOÁN #${order.orderCode}: [${oldPayStatus}] -> [${paymentStatus}]`
         });
 
-        res.redirect('/admin/orders');
+        res.redirect('/aHyIsnxH18Ahpwww/orders');
     } catch (err) {
         console.error(err);
         res.status(500).send("Lỗi cập nhật");
