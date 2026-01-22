@@ -540,7 +540,9 @@
                 gap: 15px;
             }
 
-                .nav-links span {
+      
+                /* Chỉ ẩn class welcome-text, không ảnh hưởng đến các span khác (như giỏ hàng) */
+                .nav-links .welcome-text {
                     display: none;
                 }
 
@@ -682,8 +684,7 @@
         </div>
         <div class="nav-links">
             <% if (user) { %>
-            <span>Xin chào, <b><%= user.fullName || 'User' %></b></span>
-            <a href="/logout" title="Đăng xuất"><i class="fas fa-sign-out-alt"></i></a>
+            <span class="welcome-text">Xin chào, <b><%= user.fullName ? user.fullName : 'User' %></b></span>            <a href="/logout" title="Đăng xuất"><i class="fas fa-sign-out-alt"></i></a>
             <% } else { %>
             <a href="/login">Đăng nhập</a>
             <a href="/register" style="border: 1px solid var(--dark); padding: 5px 15px;">Đăng ký</a>
