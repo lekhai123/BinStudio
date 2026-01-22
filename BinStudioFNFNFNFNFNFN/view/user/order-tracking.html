@@ -90,6 +90,31 @@
             border: 1px solid currentColor;
         }
 
+        /* NÚT GHN MỚI */
+        .btn-ghn-track {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            padding: 10px 15px;
+            background: #f26522;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            border: 1px solid #f26522;
+            box-shadow: 0 2px 5px rgba(242, 101, 34, 0.3);
+        }
+
+            .btn-ghn-track:hover {
+                background: white;
+                color: #f26522;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 10px rgba(242, 101, 34, 0.4);
+            }
+
         .timeline-box {
             padding: 25px 20px;
         }
@@ -225,6 +250,21 @@
                 </div>
                 <span class="badge"><%= (order.ghn_order_code) ? 'GHN Express' : 'Local Delivery' %></span>
             </div>
+
+            <% if (order.ghn_order_code) { %>
+            <div class="info-group" style="background: #fff5f0;">
+                <div style="width: 100%;">
+                    <span class="info-label" style="color: #f26522;">Mã vận đơn GHN</span>
+                    <a href="https://donhang.ghn.vn/?order_code=<%= order.ghn_order_code %>" target="_blank" class="btn-ghn-track">
+                        <i class="fas fa-external-link-alt"></i> <%= order.ghn_order_code %>
+                    </a>
+                    <div style="font-size: 12px; color: #666; margin-top: 8px; font-style: italic;">
+                        *Bấm vào nút trên để xem vị trí Shipper và hành trình chi tiết.
+                    </div>
+                </div>
+            </div>
+            <% } %>
+
             <div class="info-group" style="display: block;">
                 <span class="info-label">Địa chỉ nhận hàng</span>
                 <div style="margin-top: 8px; font-size: 14px;">
