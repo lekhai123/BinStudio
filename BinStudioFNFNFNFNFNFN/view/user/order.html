@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
-        /* ... (GIỮ NGUYÊN TOÀN BỘ CSS CỦA BẠN) ... */
+        /* ... (GIỮ NGUYÊN CSS CŨ CỦA BẠN) ... */
         :root {
             --primary: #d1b06b;
             --primary-hover: #c5a059;
@@ -370,7 +370,6 @@
                 gap: 15px;
             }
 
-    
                 /* Chỉ ẩn class welcome-text, không ảnh hưởng đến các span khác (như giỏ hàng) */
                 .nav-links .welcome-text {
                     display: none;
@@ -574,7 +573,7 @@
                             if(order.payment_info && order.payment_info.isOverpaid) payText = 'Đã TT (Dư tiền)';
                             }
                             else if(order.paymentStatus === 'Partially_Paid') {
-                            payClass = 'badge-Processing'; // Màu xám hoặc vàng
+                            payClass = 'badge-Processing';
                             missingAmount = order.payment_info ? order.payment_info.remainingAmount : 0;
                             payText = `Thiếu ${missingAmount.toLocaleString()}đ`;
                             }
@@ -587,6 +586,7 @@
                         <td>
                             <%
                             let statusText = '';
+                            let badgeClass = `badge-${order.status}`;
                             switch(order.status) {
                             case 'Pending': statusText = 'Chờ xác nhận'; break;
                             case 'Confirmed': statusText = 'Đã xác nhận'; break;
@@ -597,18 +597,26 @@
                             case 'Returned': statusText = 'Trả hàng'; break;
                             default: statusText = order.status;
                             }
+
+                            // Điều kiện hiện nút Theo Dõi: Đơn GHN & Đang giao/Đã giao
+                            const isGHN = order.shippingMethod === 'GHN';
+                            const isTrackingState = ['Shipping', 'Completed', 'Returned'].includes(order.status);
                             %>
-                            <span class="badge badge-<%= order.status %>"><%= statusText %></span>
+
+                            <% if (isGHN && isTrackingState) { %>
+                            <a href="/order/tracking/<%= order._id %>" class="btn-action btn-track" style="width: auto; padding: 6px 12px; font-size: 11px;">
+                                <i class="fas fa-shipping-fast"></i> <%= statusText %>
+                            </a>
+                            <div style="font-size: 10px; color: #888; margin-top: 4px; font-style: italic;">
+                                (Bấm để xem vị trí)
+                            </div>
+                            <% } else { %>
+                            <span class="badge <%= badgeClass %>"><%= statusText %></span>
+                            <% } %>
                         </td>
 
                         <td>
                             <div class="action-group">
-                                <% if (['Shipping', 'Completed', 'Returned'].includes(order.status) && order.paymentStatus === 'Paid' && order.shippingMethod === 'GHN') { %>
-                                <a href="/order/tracking/<%= order._id %>" class="btn-action btn-track">
-                                    <i class="fas fa-truck"></i> Theo dõi
-                                </a>
-                                <% } %>
-
                                 <% if (['Unpaid', 'Failed', 'Partially_Paid'].includes(order.paymentStatus) && order.status !== 'Cancelled') { %>
                                 <button class="btn-action btn-repay" onclick="repayOrder('<%= order.orderCode %>')">
                                     <% if (order.paymentStatus === 'Partially_Paid') { %>
