@@ -3,7 +3,7 @@ const Product = require('../Models/product');
 const Log = require('../Models/log');
 
 // 1. Logic hiển thị trang danh sách & Thống kê (ĐÃ NÂNG CẤP BỘ LỌC)
-
+const getVNTime = () => new Date(Date.now() + (7 * 60 * 60 * 1000));
 // 2. Logic cập nhật trạng thái & Hoàn kho (GIỮ NGUYÊN)
 exports.updateOrderStatus = async (req, res) => {
     try {
@@ -29,7 +29,13 @@ exports.updateOrderStatus = async (req, res) => {
             // Nếu là GHN: Không cho chuyển tay (Phải dùng nút Tạo đơn GHN)
             if (order.shippingMethod === 'GHN' && !order.ghn_order_code) {
                 return res.send(`<script>alert('⛔ Với đơn GHN, vui lòng bấm nút "Tạo đơn GHN" để lấy mã vận đơn trước!'); window.history.back();</script>`);
+
             }
+            order.trackingLogs.push({
+                status: newStatus,
+                action_at: getVNTime(),
+                note: `Admin cập nhật: ${newStatus}`
+            });
             // Nếu là LOCAL: Cho phép chuyển
         }
 
@@ -46,6 +52,11 @@ exports.updateOrderStatus = async (req, res) => {
                 order.payment_info = { method: 'COD_LOCAL', status: 'Paid', amount: order.totalPrice, date: new Date() };
                 console.log(`💰 Auto-Paid cho đơn Local #${order.orderCode}`);
             }
+            order.trackingLogs.push({
+                status: newStatus,
+                action_at: getVNTime(),
+                note: `Admin cập nhật: ${newStatus}`
+            });
         }
 
         // 4. LOGIC "CANCELLED" (HỦY ĐƠN)
@@ -58,6 +69,11 @@ exports.updateOrderStatus = async (req, res) => {
             if (order.paymentStatus === 'Paid') {
                 return res.send(`<script>alert('⛔ Khách đã thanh toán! Vui lòng thao tác bên cột "Thanh toán" -> chọn "Đã hoàn tiền" để hệ thống tự hủy và hoàn kho.'); window.history.back();</script>`);
             }
+            order.trackingLogs.push({
+                status: newStatus,
+                action_at: getVNTime(),
+                note: `Admin cập nhật: ${newStatus}`
+            });
         }
 
         // 5. LOGIC "RETURNED" (KHÁCH TRẢ HÀNG / GIAO THẤT BẠI)
@@ -68,6 +84,11 @@ exports.updateOrderStatus = async (req, res) => {
             }
             // Nếu đã trả tiền -> Cảnh báo (Admin phải tự quyết định có Refund tiền không)
             // Ở đây ta cho phép đổi trạng thái để hoàn kho, nhưng tiền thì Admin xử lý sau
+            order.trackingLogs.push({
+                status: newStatus,
+                action_at: getVNTime(),
+                note: `Admin cập nhật: ${newStatus}`
+            });
         }
 
         // --- 6. XỬ LÝ HOÀN KHO (RESTOCK) ---
@@ -90,11 +111,6 @@ exports.updateOrderStatus = async (req, res) => {
 
             // 🔥 QUAN TRỌNG: Ghi log thời gian thực vào DB
             // Để bên tracking hiển thị đúng giờ Admin bấm nút
-            order.trackingLogs.push({
-                status: newStatus,
-                action_at: new Date(),
-                note: `Admin cập nhật: ${newStatus}`
-            });
 
             await order.save();
 
