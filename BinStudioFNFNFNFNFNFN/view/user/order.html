@@ -605,13 +605,10 @@
 
                             <% if (isGHN && isTrackingState) { %>
                             <a href="/order/tracking/<%= order._id %>" class="btn-action btn-track" style="width: auto; padding: 6px 12px; font-size: 11px;">
-                                <i class="fas fa-shipping-fast"></i> <%= statusText %>
+                                <i class="fas fa-shipping-fast"></i> Xem chi tiết
                             </a>
-                            <div style="font-size: 10px; color: #888; margin-top: 4px; font-style: italic;">
-                                (Bấm để xem vị trí)
-                            </div>
                             <% } else { %>
-                            <span class="badge <%= badgeClass %>"><%= statusText %></span>
+                            <span class="badge <%= badgeClass %>">Xem chi tiết</span>
                             <% } %>
                         </td>
 
