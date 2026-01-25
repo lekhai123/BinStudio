@@ -341,15 +341,15 @@
 
         /* --- RESPONSIVE --- */
         @media (max-width: 768px) {
+
             .nav-links {
                 gap: 15px;
             }
 
-
-                /* Chỉ ẩn class welcome-text, không ảnh hưởng đến các span khác (như giỏ hàng) */
-                .nav-links .welcome-text {
-                    display: none;
+                .nav-links span {
+                    font-size: 13px;
                 }
+
 
             .categories {
                 overflow-x: auto;
@@ -361,6 +361,7 @@
                     white-space: nowrap;
                 }
         }
+
         @media (max-width: 768px) {
 
             /* 1. Header & Nav (Code bạn yêu cầu để đồng bộ) */
@@ -376,7 +377,8 @@
                 gap: 15px;
             }
 
-                .nav-links span {
+                /* Chỉ ẩn class welcome-text, không ảnh hưởng đến các span khác (như giỏ hàng) */
+                .nav-links .welcome-text {
                     display: none;
                 }
 
