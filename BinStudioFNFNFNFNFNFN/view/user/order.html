@@ -603,7 +603,7 @@
 
                         <td>
                             <div class="action-group">
-                                <% if (['Shipping', 'Completed', 'Returned'].includes(order.status) && order.paymentStatus === 'Paid') { %>
+                                <% if (['Shipping', 'Completed', 'Returned'].includes(order.status) && order.paymentStatus === 'Paid' && order.shippingMethod === 'GHN') { %>
                                 <a href="/order/tracking/<%= order._id %>" class="btn-action btn-track">
                                     <i class="fas fa-truck"></i> Theo dõi
                                 </a>

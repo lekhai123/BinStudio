@@ -31,12 +31,7 @@ exports.updateOrderStatus = async (req, res) => {
                 return res.send(`<script>alert('⛔ Với đơn GHN, vui lòng bấm nút "Tạo đơn GHN" để lấy mã vận đơn trước!'); window.history.back();</script>`);
 
             }
-            order.trackingLogs.push({
-                status: newStatus,
-                action_at: getVNTime(),
-                note: `Admin cập nhật: ${newStatus}`
-            });
-            // Nếu là LOCAL: Cho phép chuyển
+           
         }
 
         // 3. LOGIC CHUYỂN SANG "COMPLETED" (HOÀN THÀNH - CHỈ LOCAL)
@@ -52,11 +47,7 @@ exports.updateOrderStatus = async (req, res) => {
                 order.payment_info = { method: 'COD_LOCAL', status: 'Paid', amount: order.totalPrice, date: new Date() };
                 console.log(`💰 Auto-Paid cho đơn Local #${order.orderCode}`);
             }
-            order.trackingLogs.push({
-                status: newStatus,
-                action_at: getVNTime(),
-                note: `Admin cập nhật: ${newStatus}`
-            });
+           
         }
 
         // 4. LOGIC "CANCELLED" (HỦY ĐƠN)
@@ -69,11 +60,7 @@ exports.updateOrderStatus = async (req, res) => {
             if (order.paymentStatus === 'Paid') {
                 return res.send(`<script>alert('⛔ Khách đã thanh toán! Vui lòng thao tác bên cột "Thanh toán" -> chọn "Đã hoàn tiền" để hệ thống tự hủy và hoàn kho.'); window.history.back();</script>`);
             }
-            order.trackingLogs.push({
-                status: newStatus,
-                action_at: getVNTime(),
-                note: `Admin cập nhật: ${newStatus}`
-            });
+           
         }
 
         // 5. LOGIC "RETURNED" (KHÁCH TRẢ HÀNG / GIAO THẤT BẠI)
@@ -84,11 +71,7 @@ exports.updateOrderStatus = async (req, res) => {
             }
             // Nếu đã trả tiền -> Cảnh báo (Admin phải tự quyết định có Refund tiền không)
             // Ở đây ta cho phép đổi trạng thái để hoàn kho, nhưng tiền thì Admin xử lý sau
-            order.trackingLogs.push({
-                status: newStatus,
-                action_at: getVNTime(),
-                note: `Admin cập nhật: ${newStatus}`
-            });
+           
         }
 
         // --- 6. XỬ LÝ HOÀN KHO (RESTOCK) ---
