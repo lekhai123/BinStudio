@@ -369,7 +369,7 @@ exports.trackOrder = async (req, res) => {
             displayLogs.push({
                 status: 'Pending',
                 status_text: 'Đặt hàng thành công',
-                time: new Date(new Date(order.createdAt).getTime() + (7 * 60 * 60 * 1000),
+                time: new Date(new Date(order.createdAt).getTime() + (7 * 60 * 60 * 1000)),
                 desc: 'Hệ thống ghi nhận',
                 icon: 'fa-shopping-bag'
             });
