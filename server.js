@@ -1,0 +1,125 @@
+﻿const dns = require('dns');
+dns.setServers(['8.8.8.8', '8.8.4.4']);
+require('dotenv').config();
+const orderController = require('./Controller/userOrderController');
+if (process.env.NODE_ENV === 'production') {
+    console.log = function () { };
+    console.info = function () { };
+    console.warn = function () { };
+    console.error = function () {}; // giữ lại console.error để biết nếu web bị sập
+}
+
+const express = require('express');
+const mongoose = require('mongoose');
+const session = require('express-session');
+const path = require('path');
+const app = express();
+const systemLog = require('./Middleware/log');
+const { injectUserData } = require('./Middleware/userMiddleware');
+const userSharedRoutes = require('./route/userIndexRoute');
+const adminSharedRoutes = require('./route/adminIndexRoute');
+const ghnRouter = require('./route/ghnRoute');
+const flash = require('connect-flash');
+const MongoStore = require('connect-mongo'); 
+app.set('trust proxy', 1);
+const cors = require('cors');
+const helmet = require('helmet');
+app.use(express.json());
+
+app.post(
+    '/api/payos-webhook',
+    express.raw({ type: 'application/json' }),
+    orderController.payosWebhook
+);
+app.use(cors({
+    origin: 'https://binstudio.onrender.com', // Domain thật 
+    credentials: true
+}));
+app.use(helmet({
+    // TẮT CHẶN SCRIPT & CSS (CSP)
+    // Giúp các nút bấm, icon Zalo, giỏ hàng, style inline chạy bình thường
+    contentSecurityPolicy: false,
+
+    // TẮT CHẶN NHÚNG CHÉO
+    // Giúp ảnh Cloudinary và CDN bên thứ 3 load
+    crossOriginEmbedderPolicy: false,
+
+    // GIỮ LẠI CÁC BẢO MẬT CƠ BẢN (Không gây lỗi web)
+    // Chống Clickjacking (Không cho web khác nhúng web vào iframe)
+    frameguard: { action: 'deny' },
+
+    // Chống ép kiểu MIME (Ngăn trình duyệt đoán sai định dạng file)
+    noSniff: true,
+
+    // Bảo vệ XSS cơ bản của trình duyệt
+    xssFilter: true,
+
+    // Ép buộc dùng HTTPS
+    hsts: true,
+
+    // Ẩn thông tin server (X-Powered-By: Express) để hacker khó đoán công nghệ
+    hidePoweredBy: true,
+}));
+const http = require('http');
+const { Server } = require('socket.io');
+const server = http.createServer(app);
+const io = new Server(server);
+app.set('io', io);
+
+app.use((req, res, next) => {
+    req.io = io;
+    next();
+});
+app.use((req, res, next) => {
+    console.log(`👉 [REQUEST] ${req.method} ${req.url}`);
+    next();
+});
+io.on('connection', socket => {
+    console.log('Admin connected:', socket.id);
+
+    socket.join('admin');
+});
+
+mongoose.connect(process.env.MONGODB_URI)
+    .then(() => console.log("✅ MongoDB Atlas Connected"))
+    .catch(err => console.error("❌ MongoDB Error:", err));
+
+app.engine('html', require('ejs').renderFile);
+app.set('view engine', 'html');
+app.set('views', path.join(__dirname, 'view'));
+
+
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'abcuwh28jo101jmdkdn#$%^&91ndnsniojww8u82388zzSHDHIDHDH',
+    resave: false,
+    saveUninitialized: false, 
+    store: MongoStore.create({
+        mongoUrl: process.env.MONGODB_URI,
+        collectionName: 'sessions'
+    }),
+    cookie: {
+        maxAge: 1000 * 60 * 60 * 24,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'lax' // Đổi 'none' thành 'lax' nếu cùng domain
+    }
+}));
+app.use(flash());
+
+app.use(systemLog);
+app.use(injectUserData);
+
+app.use('/', userSharedRoutes); 
+app.use('/aHyIsnxH18Ahpwww',adminSharedRoutes); 
+
+app.use('/', ghnRouter);
+
+
+const PORT = process.env.PORT || 3000;
+
+server.listen(PORT, () => {
+    process.stdout.write(`🚀 BinStudio is running on port ${PORT}\n`);
+});

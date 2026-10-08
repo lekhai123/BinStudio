@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theo dõi đơn hàng #<%= order.orderCode %></title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: <%= (order.ghn_order_code) ? '#f26522' : '#00a651' %>;
+            --bg: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-sub: #6b7280;
+            --border: #e5e7eb;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            margin: 0;
+            color: var(--text-main);
+            padding-bottom: 40px;
+        }
+
+        .track-header {
+            background: var(--primary);
+            padding: 25px 20px 60px;
+            text-align: center;
+            color: white;
+        }
+
+            .track-header h2 {
+                margin: 0 0 5px;
+                font-size: 20px;
+                font-weight: 700;
+            }
+
+            .track-header p {
+                margin: 0;
+                font-size: 14px;
+                opacity: 0.9;
+            }
+
+        .container {
+            max-width: 600px;
+            margin: -40px auto 0;
+            padding: 0 15px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .info-group {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .info-label {
+            font-size: 11px;
+            color: var(--text-sub);
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .info-value {
+            font-size: 15px;
+            font-weight: 600;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            background: #eff6ff;
+            color: var(--primary);
+            border: 1px solid currentColor;
+        }
+
+        /* NÚT GHN MỚI */
+        .btn-ghn-track {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            padding: 10px 15px;
+            background: #f26522;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            border: 1px solid #f26522;
+            box-shadow: 0 2px 5px rgba(242, 101, 34, 0.3);
+        }
+
+            .btn-ghn-track:hover {
+                background: white;
+                color: #f26522;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 10px rgba(242, 101, 34, 0.4);
+            }
+
+        .timeline-box {
+            padding: 25px 20px;
+        }
+
+        .timeline {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            position: relative;
+        }
+
+            .timeline::before {
+                content: '';
+                position: absolute;
+                top: 15px;
+                bottom: 0;
+                left: 19px;
+                width: 2px;
+                background: #e5e7eb;
+                z-index: 0;
+            }
+
+        .t-item {
+            position: relative;
+            padding-left: 50px;
+            padding-bottom: 30px;
+        }
+
+            .t-item:last-child {
+                padding-bottom: 0;
+            }
+
+        .t-icon {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 40px;
+            height: 40px;
+            background: #fff;
+            border: 2px solid #e5e7eb;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9ca3af;
+            font-size: 16px;
+            z-index: 1;
+        }
+
+        .t-item.active .t-icon {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+            animation: pulse 2s infinite;
+        }
+
+        .t-time {
+            font-size: 12px;
+            color: var(--text-sub);
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .t-status {
+            font-size: 15px;
+            font-weight: 700;
+            line-height: 1.4;
+        }
+
+        .t-item.active .t-status {
+            color: var(--primary);
+        }
+
+        .t-desc {
+            font-size: 13px;
+            color: var(--text-sub);
+            margin-top: 4px;
+        }
+
+        .action-row {
+            padding: 15px 20px;
+            background: #f9fafb;
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .btn-back {
+            text-decoration: none;
+            color: var(--text-sub);
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.1);
+            }
+
+            70% {
+                box-shadow: 0 0 0 6px rgba(0, 0, 0, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="track-header">
+        <% if (order.ghn_order_code) { %>
+        <div style="font-size: 40px; margin-bottom: 10px;"><i class="fas fa-shipping-fast"></i></div>
+        <h2>Giao Hàng Nhanh</h2>
+        <p>Đối tác vận chuyển chính thức</p>
+        <% } else { %>
+        <div style="font-size: 40px; margin-bottom: 10px;"><i class="fas fa-truck-pickup"></i></div>
+        <h2>BinStudio Delivery</h2>
+        <p>Giao hàng nội bộ</p>
+        <% } %>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <div class="info-group">
+                <div>
+                    <span class="info-label">Mã đơn hàng</span>
+                    <span class="info-value">#<%= order.orderCode %></span>
+                </div>
+                <span class="badge"><%= (order.ghn_order_code) ? 'GHN Express' : 'Local Delivery' %></span>
+            </div>
+
+            <% if (order.ghn_order_code) { %>
+            <div class="info-group" style="background: #fff5f0;">
+                <div style="width: 100%;">
+                    <span class="info-label" style="color: #f26522;">Mã vận đơn GHN</span>
+                    <a href="https://donhang.ghn.vn/?order_code=<%= order.ghn_order_code %>" target="_blank" class="btn-ghn-track">
+                        <i class="fas fa-external-link-alt"></i> <%= order.ghn_order_code %>
+                    </a>
+                    <div style="font-size: 12px; color: #666; margin-top: 8px; font-style: italic;">
+                        *Bấm vào nút trên để xem vị trí Shipper và hành trình chi tiết.
+                    </div>
+                </div>
+            </div>
+            <% } %>
+
+            <div class="info-group" style="display: block;">
+                <span class="info-label">Địa chỉ nhận hàng</span>
+                <div style="margin-top: 8px; font-size: 14px;">
+                    <strong><%= order.userInfo.fullName %></strong> - <%= order.userInfo.phone %><br>
+                    <span style="color: var(--text-sub);"><%= order.userInfo.address %></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="timeline-box">
+                <ul class="timeline">
+                    <% if (logs && logs.length > 0) { %>
+                    <% logs.forEach((log, index) => { %>
+                    <li class="t-item <%= index === 0 ? 'active' : '' %>">
+                        <div class="t-icon">
+                            <i class="fas <%= log.icon || 'fa-circle' %>"></i>
+                        </div>
+                        <div class="t-content">
+                            <div class="t-time">
+                                <%= log.time ? log.time.toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' }) : '' %>
+                            </div>
+                            <div class="t-status"><%= log.status_text %></div>
+                            <% if (log.desc) { %>
+                            <div class="t-desc"><%= log.desc %></div>
+                            <% } %>
+                        </div>
+                    </li>
+                    <% }); %>
+                    <% } else { %>
+                    <li class="t-item">
+                        <div class="t-content"><div class="t-desc">Chưa có thông tin hành trình.</div></div>
+                    </li>
+                    <% } %>
+                </ul>
+            </div>
+
+            <div class="action-row">
+                <a href="/order" class="btn-back">
+                    <i class="fas fa-arrow-left"></i> Quay lại danh sách đơn hàng
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
