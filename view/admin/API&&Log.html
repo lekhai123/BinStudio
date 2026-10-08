@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BinStudio - Cấu hình & Nhật ký</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --accent: #d1b06b;
+            --bg: #f4f7f6;
+            --sidebar-bg: #1a1a1a;
+            --text-muted: #bbb;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .admin-layout {
+            display: flex;
+            min-height: 100vh;
+            background: var(--bg);
+        }
+
+        /* SIDEBAR (Giữ nguyên) */
+        .sidebar {
+            width: 260px;
+            background: var(--sidebar-bg);
+            color: white;
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+        }
+
+        .sidebar-header {
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+            .sidebar-header h2 {
+                font-family: 'Montserrat', sans-serif;
+                font-weight: 900;
+                font-size: 24px;
+                color: var(--accent);
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }
+
+        .sidebar-menu {
+            list-style: none;
+        }
+
+            .sidebar-menu li {
+                border-bottom: 1px solid #2a2a2a;
+            }
+
+            .sidebar-menu a {
+                color: var(--text-muted);
+                text-decoration: none;
+                font-size: 14px;
+                display: block;
+                padding: 15px 25px;
+                transition: 0.3s;
+            }
+
+                .sidebar-menu a:hover {
+                    color: white;
+                    background: #2a2a2a;
+                    padding-left: 35px;
+                }
+
+                .sidebar-menu a.active {
+                    color: white;
+                    font-weight: bold;
+                    background: #2a2a2a;
+                    border-left: 4px solid var(--accent);
+                }
+
+        /* MAIN CONTENT */
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        .config-section {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+            .config-section h3 {
+                margin-bottom: 20px;
+                color: #333;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+        /* Form & Config Group (Giữ nguyên các style cũ cho phần API) */
+        .config-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .api-item {
+            border: 1px solid #eee;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+
+            .switch input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 20px;
+        }
+
+            .slider:before {
+                position: absolute;
+                content: "";
+                height: 14px;
+                width: 14px;
+                left: 3px;
+                bottom: 3px;
+                background-color: white;
+                transition: .4s;
+                border-radius: 50%;
+            }
+
+        input:checked + .slider {
+            background-color: var(--accent);
+        }
+
+            input:checked + .slider:before {
+                transform: translateX(20px);
+            }
+
+        input[type="text"], input[type="password"], select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            outline: none;
+        }
+
+        .btn-save {
+            margin-top: 20px;
+            padding: 12px 30px;
+            background: var(--sidebar-bg);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            transition: 0.3s;
+        }
+
+            .btn-save:hover {
+                background: #000;
+                transform: translateY(-2px);
+            }
+
+        /* --- NEW: LOG FILTER BAR --- */
+        .log-filter-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .filter-item label {
+            font-size: 12px;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .filter-input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+            min-width: 150px;
+        }
+
+        /* --- NEW: LOG TABLE STYLE --- */
+        .log-table-container {
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 8px;
+        }
+
+        .log-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+            .log-table th {
+                background: #f8f9fa;
+                padding: 12px 15px;
+                text-align: left;
+                position: sticky;
+                top: 0;
+                z-index: 10;
+                border-bottom: 2px solid #eee;
+            }
+
+            .log-table td {
+                padding: 12px 15px;
+                border-bottom: 1px solid #eee;
+                color: #444;
+            }
+
+            .log-table tr:hover {
+                background: #fdfdfd;
+            }
+
+        /* Badge Log Type */
+        .badge-log {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .type-PAYMENT {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+
+        .type-ORDER {
+            background: #e3f2fd;
+            color: #1565c0;
+            border: 1px solid #bbdefb;
+        }
+
+        .type-ADMIN {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+        /* Admin thao tác */
+        .type-ERROR {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+
+        .type-SYSTEM {
+            background: #f3f3f3;
+            color: #555;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="admin-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header"><h2>BinStudio</h2></div>
+            <ul class="sidebar-menu">
+                <li><a href="/aHyIsnxH18Ahpwww">📊 Bảng điều khiển</a></li>
+                <li><a href="/aHyIsnxH18Ahpwww/products">📦 Quản lý Sản phẩm</a></li>
+                <li><a href="/aHyIsnxH18Ahpwww/users">👥 Quản lý Người dùng</a></li>
+                <li><a href="/aHyIsnxH18Ahpwww/orders">🧾 Đơn hàng & Doanh thu</a></li>
+                <li><a href="/aHyIsnxH18Ahpwww/config" class="active">⚙️ Cấu hình API và Log</a></li>
+                <li><a href="/aHyIsnxH18Ahpwww/homepage" style="color: white; font-weight: bold;">🏠 Chỉnh sửa Trang chủ</a></li>
+                <li><a href="/" style="color: var(--accent); margin-top: 20px; border-top: 1px solid #333;">🏠 Quay lại Shop</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <h1 style="margin-bottom: 30px;">Nhật ký hệ thống</h1>
+
+
+            <div class="config-section" id="logs">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                    <h3>🛠️ Nhật ký hoạt động (System Logs)</h3>
+                    <form action="/aHyIsnxH18Ahpwww/config/logs/clear" method="POST" onsubmit="return confirm('Xóa sạch lịch sử?');">
+                        <button type="submit" style="color:red; border:1px solid red; background:none; padding:5px 10px; border-radius:4px; cursor:pointer;">
+                            <i class="fas fa-trash"></i> Xóa lịch sử
+                        </button>
+                    </form>
+                </div>
+
+                <div class="log-filter-bar">
+                    <div class="filter-item">
+                        <label>Lọc theo loại:</label>
+                        <select id="filterType" class="filter-input" onchange="filterLogs()">
+                            <option value="ALL">Tất cả</option>
+                            <option value="ADMIN">👮 Admin Thao tác</option>
+                            <option value="ORDER">📦 Đơn hàng</option>
+                            <option value="PAYMENT">💰 Thanh toán</option>
+
+                            <option value="ERROR">❌ Lỗi</option>
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <label>Chọn ngày:</label>
+                        <input type="date" id="filterDate" class="filter-input" onchange="filterLogs()">
+                    </div>
+                    <div class="filter-item">
+                        <label>Tìm kiếm nội dung:</label>
+                        <input type="text" id="filterText" class="filter-input" placeholder="Nhập từ khóa..." onkeyup="filterLogs()">
+                    </div>
+                </div>
+
+                <div class="log-table-container">
+                    <table class="log-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 150px;">Thời gian</th>
+                                <th style="width: 120px;">Loại</th>
+                                <th>Nội dung chi tiết</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logTableBody">
+                            <% if (logs && logs.length > 0) { %>
+                            <% logs.forEach(log => { %>
+                            <tr class="log-row" data-type="<%= log.type %>" data-date="<%= new Date(log.createdAt).toISOString().split('T')[0] %>">
+                                <td><%= new Date(log.createdAt).toLocaleString('vi-VN') %></td>
+                                <td>
+                                    <span class="badge-log type-<%= log.type %>"><%= log.type %></span>
+                                </td>
+                                <td><%= log.message %></td>
+                            </tr>
+                            <% }) %>
+                            <% } else { %>
+                            <tr><td colspan="3" style="text-align:center; padding: 20px;">Chưa có dữ liệu log.</td></tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // 1. Hàm lọc Log (Client-side)
+        function filterLogs() {
+            const type = document.getElementById('filterType').value;
+            const date = document.getElementById('filterDate').value;
+            const text = document.getElementById('filterText').value.toLowerCase();
+
+            const rows = document.querySelectorAll('.log-row');
+
+            rows.forEach(row => {
+                const rowType = row.getAttribute('data-type');
+                const rowDate = row.getAttribute('data-date');
+                const rowContent = row.innerText.toLowerCase();
+
+                let show = true;
+
+                if (type !== 'ALL' && rowType !== type) show = false;
+                if (date && rowDate !== date) show = false;
+                if (text && !rowContent.includes(text)) show = false;
+
+                row.style.display = show ? '' : 'none';
+            });
+        }
+
+        // 2. Socket.io nhận Log mới realtime
+        if (typeof io !== 'undefined') {
+            const socket = io();
+            const tbody = document.getElementById('logTableBody');
+
+            socket.on('new-log', (log) => {
+                const tr = document.createElement('tr');
+                tr.className = 'log-row';
+                tr.setAttribute('data-type', log.type);
+
+                // Format ngày chuẩn ISO yyyy-mm-dd để lọc
+                const dateObj = new Date(log.createdAt);
+                const isoDate = dateObj.toISOString().split('T')[0];
+                tr.setAttribute('data-date', isoDate);
+
+                const timeStr = dateObj.toLocaleString('vi-VN');
+
+                tr.innerHTML = `
+                        <td>${timeStr}</td>
+                        <td><span class="badge-log type-${log.type}">${log.type}</span></td>
+                        <td>${log.message}</td>
+                    `;
+
+                // Hiệu ứng nháy vàng khi mới thêm
+                tr.style.backgroundColor = "#fffde7";
+                setTimeout(() => { tr.style.backgroundColor = ""; }, 2000);
+
+                tbody.prepend(tr); // Thêm lên đầu bảng
+            });
+        }
+    </script>
+</body>
+</html>

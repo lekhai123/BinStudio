@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <PropertyGroup>
+    <PackageJsonName Condition="$(PackageJsonName) == ''">binstudio-shop</PackageJsonName>
+    <PackageJsonVersion Condition="$(PackageJsonVersion) == ''">1.0.0</PackageJsonVersion>
+    <PackageJsonDescription Condition="$(PackageJsonDescription) == ''">Website ban vest nam</PackageJsonDescription>
+    <PackageJsonMain Condition="$(PackageJsonMain) == ''">app.js</PackageJsonMain>
+    <PackageJsonEnginesNode Condition="$(PackageJsonEnginesNode) == ''">&gt;=18.0.0</PackageJsonEnginesNode>
+    <PackageJsonScriptsTest Condition="$(PackageJsonScriptsTest) == ''">echo "Error: no test specified" &amp;&amp; exit 1</PackageJsonScriptsTest>
+    <PackageJsonScriptsStart Condition="$(PackageJsonScriptsStart) == ''">cd BinStudioFNFNFNFNFNFN &amp;&amp; node server.js</PackageJsonScriptsStart>
+    <PackageJsonDependenciesPayosNode Condition="$(PackageJsonDependenciesPayosNode) == ''">^2.0.4</PackageJsonDependenciesPayosNode>
+    <PackageJsonDependenciesAxios Condition="$(PackageJsonDependenciesAxios) == ''">^1.13.2</PackageJsonDependenciesAxios>
+    <PackageJsonDependenciesBcrypt Condition="$(PackageJsonDependenciesBcrypt) == ''">^6.0.0</PackageJsonDependenciesBcrypt>
+    <PackageJsonDependenciesCloudinary Condition="$(PackageJsonDependenciesCloudinary) == ''">^2.8.0</PackageJsonDependenciesCloudinary>
+    <PackageJsonDependenciesConnectFlash Condition="$(PackageJsonDependenciesConnectFlash) == ''">^0.1.1</PackageJsonDependenciesConnectFlash>
+    <PackageJsonDependenciesConnectMongo Condition="$(PackageJsonDependenciesConnectMongo) == ''">^5.1.0</PackageJsonDependenciesConnectMongo>
+    <PackageJsonDependenciesDotenv Condition="$(PackageJsonDependenciesDotenv) == ''">^17.2.3</PackageJsonDependenciesDotenv>
+    <PackageJsonDependenciesEjs Condition="$(PackageJsonDependenciesEjs) == ''">^3.1.10</PackageJsonDependenciesEjs>
+    <PackageJsonDependenciesExpress Condition="$(PackageJsonDependenciesExpress) == ''">^5.2.1</PackageJsonDependenciesExpress>
+    <PackageJsonDependenciesExpressRateLimit Condition="$(PackageJsonDependenciesExpressRateLimit) == ''">^8.2.1</PackageJsonDependenciesExpressRateLimit>
+    <PackageJsonDependenciesExpressSession Condition="$(PackageJsonDependenciesExpressSession) == ''">^1.18.2</PackageJsonDependenciesExpressSession>
+    <PackageJsonDependenciesHelmet Condition="$(PackageJsonDependenciesHelmet) == ''">^8.1.0</PackageJsonDependenciesHelmet>
+    <PackageJsonDependenciesMongoose Condition="$(PackageJsonDependenciesMongoose) == ''">^8.20.4</PackageJsonDependenciesMongoose>
+    <PackageJsonDependenciesMulter Condition="$(PackageJsonDependenciesMulter) == ''">^2.0.2</PackageJsonDependenciesMulter>
+    <PackageJsonDependenciesMulterStorageCloudinary Condition="$(PackageJsonDependenciesMulterStorageCloudinary) == ''">^4.0.0</PackageJsonDependenciesMulterStorageCloudinary>
+    <PackageJsonDependenciesNodeTelegramBotApi Condition="$(PackageJsonDependenciesNodeTelegramBotApi) == ''">^0.67.0</PackageJsonDependenciesNodeTelegramBotApi>
+    <PackageJsonDependenciesNodemailer Condition="$(PackageJsonDependenciesNodemailer) == ''">^7.0.12</PackageJsonDependenciesNodemailer>
+    <PackageJsonDependenciesResend Condition="$(PackageJsonDependenciesResend) == ''">^6.7.0</PackageJsonDependenciesResend>
+    <PackageJsonDependenciesSocketIo Condition="$(PackageJsonDependenciesSocketIo) == ''">^4.8.3</PackageJsonDependenciesSocketIo>
+  </PropertyGroup>
+</Project>

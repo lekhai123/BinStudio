@@ -1,14 +1,4 @@
-# Node.js
-node_modules/
-npm-debug.log
-yarn-error.log
-system.log
-# Visual Studio (Cái gây lỗi)
-.vs/
-.vscode/
-*.user
-*.suo
-*.sln.docstates
-
-# Môi trường
+﻿node_modules/
 .env
+.DS_Store
+*.log
