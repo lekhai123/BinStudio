@@ -26,6 +26,7 @@ Dự án áp dụng mô hình kiến trúc Monolithic MVC (Model - View - Contro
 ---
 
 ## Cấu Trúc Thư Mục (Project Structure)
+```text
 
 BinStudio/
 ├── config/
@@ -87,9 +88,11 @@ BinStudio/
 ├── package.json
 └── server.js                        # Điểm khởi chạy máy chủ Express
 
+```
 
 # Cấu Hình Biến Môi Trường (.env.example)
 Tạo một file .env tại thư mục gốc của dự án và khai báo các khóa cấu hình sau:
+```text
 
 # Server Config
 PORT=3000
@@ -124,6 +127,8 @@ PAYOS_CHECKSUM_KEY=your_payos_checksum_key
 # Telegram Admin Notification Bot
 TOKEN=your_telegram_bot_token
 ADMIN_CHAT_ID=your_telegram_chat_id
+```
+
 
 
 # Hướng Dẫn Cài Đặt & Khởi Chạy (Local Development)
